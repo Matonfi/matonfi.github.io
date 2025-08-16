@@ -1,0 +1,478 @@
+<!DOCTYPE html>
+<html lang="en">
+	<head>
+		<meta charset="UTF-8" />
+		<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+		<title>Document</title>
+		<link rel="stylesheet" href="css/style.css" />
+		<link rel="stylesheet" href="lib/bootstrap-5.2.3-dist/css/bootstrap.min.css" />
+		<link rel="stylesheet" href="lib/bootstrap-5.2.3-dist/css/bootstrap.min.css.map" />
+		<link rel="stylesheet" href="lib/material-master/css/material.min.css" />
+		<link rel="stylesheet" href="lib/mdl/material.min.css" />
+		<link rel="preconnect" href="https://fonts.googleapis.com" />
+		<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+		<link
+			href="https://fonts.googleapis.com/css2?family=Montserrat:ital,wght@0,100..900;1,100..900&display=swap"
+			rel="stylesheet" />
+		<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css" />
+	</head>
+	<body>
+		<div id="loginContainer" class="container">
+			<div class="row justify-content-center" style="height: 100vh">
+				<div class="col-md-4">
+					<h2 class="text-center">Вход</h2>
+					<form id="loginForm">
+						<div class="mb-3">
+							<label for="password" class="form-label">Введите пароль:</label>
+							<input type="password" class="form-control" id="password" required />
+						</div>
+						<button type="submit" class="btn btn-primary w-100">Войти</button>
+						<p class="error text-center mt-2" id="errorMessage">Пароль неверный. Попробуйте снова.</p>
+					</form>
+				</div>
+			</div>
+		</div>
+
+		<div id="content">
+			<header class="py-2">
+				<div class="container px-2">
+					<div class="d-flex flex-column align-items-center">
+						<div class="d-flex align-items-center w-100">
+							<a href="#" class="d-flex align-items-center">
+								<img src="img/arrow_left.png" alt="Arrow" style="width: 18px; height: 18px" />
+							</a>
+							<ul class="nav mb-0 mx-auto d-flex align-items-center">
+								<li class="nav-item">
+									<a href="#" class="nav-link px-2 text-secondary" id="text-main">Мои билеты</a>
+								</li>
+							</ul>
+						</div>
+						<div class="btn-group-toggle d-none" role="group" aria-label="Toggle buttons">
+							<a href="#" class="btn" id="btn_one1">Транспорт</a>
+							<a href="#" class="btn" id="btn_two">Другое</a>
+						</div>
+					</div>
+				</div>
+			</header>
+			<div class="container" style="padding-bottom: 35rem; margin-bottom: 35rem">
+				<div class="badge-custome d-flex justify-content-center">
+					<span class="badge px-3 text-bg-primary mt-4 mb-2">Сегодня</span>
+				</div>
+				<div id="openCustomModal"></div>
+				<div class="card" id="ticketCard" style="display: none">
+					<div class="yellow-strip">
+						<img src="img/onay.png" alt="Image in Yellow Strip" />
+					</div>
+					<div class="card-content py-2">
+						<p id="text_01">Автобус</p>
+						<p class="mb-2" id="text_02">Алматы</p>
+						<p class="align-items-center text-center pb-1">
+							<span class="label">Маршрут:</span>
+							<span class="value w-700 fs-14">
+								<img src="img/bus.png" alt="bus icon" class="bus-icon transport-icon" id="transportIcon" />
+								<span id="routeNumber">00</span>
+								<span class="badge-custome-two badge mx-2 fs-14" id="ticketCode">009FJ00</span>
+							</span>
+						</p>
+						<p class="pb-1">
+							<span class="label">Время:</span>
+							<span class="value w-700 fs-14" id="ticketTime">01.01.24 21:00</span>
+						</p>
+						<p class="pb-1">
+							<span class="label">Цена:</span>
+							<span class="value w-700 fs-14" id="ticketPrice">120 ₸</span>
+						</p>
+						<p class="pb-1">
+							<span class="label">Код проверки:</span>
+							<span class="value w-700 fs-14" id="verificationCodeDisplay"
+								>3DF19 <img src="img/qr.png" alt="bus icon" class="qr-icon mx-1"
+							/></span>
+						</p>
+					</div>
+				</div>
+
+				<div class="d-flex justify-content-center" id="btn_one">
+					<span class="badge-custome-add my-2 d-flex align-items-center">
+						<img src="img/add-ticket.png" alt="Icon" class="me-0 icon-inside-badge" />
+						Купить ещё
+					</span>
+				</div>
+
+				<!-- Custom Modal for Ticket Details -->
+				<div class="custom-modal-overlay" id="customModal">
+					<div class="custom-modal-content animate__animated animate__fadeInUpBig animate__faster">
+						<button class="custom-close-btn" id="closeCustomModal">&times;</button>
+						<img src="img/ticket_empty.png" alt="Ticket Image" />
+						<div class="custom-text-overlay">
+							<p class="label" style="top: -8px; left: 0px; position: relative">Маршрут:</p>
+							<p class="value" style="top: 30px; left: 10px; position: relative">
+								<img
+									src="img/bus.png"
+									alt="bus icon"
+									class="bus-icon"
+									id="modalTransportIcon"
+									style="top: -42px; left: -8px; position: relative" />
+								<span class="fw-700 color-fb" id="modalRouteNumber" style="top: -39px; left: -18px; position: relative"
+									>00</span
+								>
+								<span
+									class="badge-custome-three badge fs-14"
+									id="modalTicketCode"
+									style="top: -42px; left: -8px; position: relative"
+									>009FJ00</span
+								>
+							</p>
+							<p class="label" style="top: 3px; left: 0px; position: relative">Время:</p>
+							<p class="value fw-700" id="modalTicketTime" style="top: 2px; left: -1px; position: relative">
+								00.00.24 00:00
+							</p>
+							<p class="label" style="top: 14px; left: 1px; position: relative">Код проверки:</p>
+							<p
+								class="value fw-700"
+								id="modalVerificationCodeDisplay"
+								style="top: 14px; left: 0px; position: relative; font-size: 30px !important">
+								3DF19
+							</p>
+						</div>
+					</div>
+				</div>
+			</div>
+
+			<!-- Modal for Adding Ticket -->
+			<div
+				class="modal fade"
+				id="addTicketModal"
+				tabindex="-1"
+				aria-labelledby="addTicketModalLabel"
+				aria-hidden="true">
+				<div class="modal-dialog">
+					<div class="modal-content">
+						<div class="modal-header">
+							<h5 class="modal-title" id="addTicketModalLabel">Добавить билет</h5>
+							<button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+						</div>
+						<div class="modal-body">
+							<form id="ticketForm">
+								<div class="mb-3">
+									<label for="transportType" class="form-label">Тип транспорта</label>
+									<div>
+										<input type="radio" id="bus" name="transportType" value="bus" checked />
+										<label for="bus">Автобус</label>
+										<input type="radio" id="trolleybus" name="transportType" value="trolleybus" />
+										<label for="trolleybus">Троллейбус</label>
+									</div>
+								</div>
+								<div class="mb-3">
+									<label for="additionalNumber" class="form-label">Добавочный номер</label>
+									<input type="text" class="form-control" id="additionalNumber" />
+								</div>
+								<div class="mb-3">
+									<label for="ticketNumber" class="form-label">Номер транспорта</label>
+									<input type="text" class="form-control" id="ticketNumber" required />
+								</div>
+								<div class="mb-3">
+									<label for="route" class="form-label">Маршрут</label>
+									<input type="text" class="form-control" id="route" required />
+								</div>
+								<div class="mb-3">
+									<label for="time" class="form-label">Время</label>
+									<input type="datetime-local" class="form-control" id="time" required />
+								</div>
+								<div class="mb-3">
+									<label for="codeLength" class="form-label">Длина кода проверки</label>
+									<input type="number" class="form-control" id="codeLength" min="1" value="9" required />
+								</div>
+								<div class="mb-3">
+									<label for="verificationCode" class="form-label">Код проверки</label>
+									<input type="text" class="form-control" id="verificationCode" />
+								</div>
+								<button type="button" class="btn btn-primary" onclick="generateVerificationCode()">
+									Сгенерировать код
+								</button>
+								<div class="mb-3">
+									<label for="price" class="form-label">Цена</label>
+									<input type="number" class="form-control" id="price" value="120" required />
+								</div>
+								<button type="submit" class="btn btn-primary">Добавить</button>
+								<button type="submit" class="btn btn-danger">Очистить</button>
+							</form>
+						</div>
+					</div>
+				</div>
+			</div>
+
+			<footer class="d-none">
+				<img src="img/footer.png" alt="Footer Image" />
+			</footer>
+		</div>
+		<script src="lib/bcrypt.min.js"></script>
+		<script src="js/script.js"></script>
+		<script src="lib/bootstrap-5.2.3-dist/js/bootstrap.bundle.min.js"></script>
+		<script src="lib/jquery/jquery-3.7.1.min.js"></script>
+		<script src="lib/material-master/js/material.min.js"></script>
+		<script src="lib/mdl/material.min.js"></script>
+		<script>
+			function generateVerificationCode() {
+				const codeLength = parseInt(document.getElementById('codeLength').value) || 8
+				const characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789'
+				let verificationCode = ''
+
+				for (let i = 0; i < codeLength; i++) {
+					const randomIndex = Math.floor(Math.random() * characters.length)
+					verificationCode += characters.charAt(randomIndex)
+				}
+
+				document.getElementById('verificationCode').value = verificationCode
+				return verificationCode
+			}
+
+			document.addEventListener('DOMContentLoaded', function () {
+				// Load tickets from localStorage on page load
+				loadStoredTickets()
+
+				const addTicketModal = document.getElementById('addTicketModal')
+
+				// Automatically generate verification code when modal is shown
+				addTicketModal.addEventListener('shown.bs.modal', function () {
+					generateVerificationCode()
+				})
+
+				document.getElementById('btn_one').addEventListener('click', function (event) {
+					event.preventDefault()
+					generateVerificationCode()
+					var myModal = new bootstrap.Modal(addTicketModal)
+					myModal.show()
+				})
+
+				document.getElementById('ticketForm').addEventListener('submit', function (event) {
+					event.preventDefault()
+
+					var transportType = document.querySelector('input[name="transportType"]:checked').value
+					var ticketNumber = document.getElementById('ticketNumber').value
+					var additionalNumber = document.getElementById('additionalNumber').value || ''
+					var route = document.getElementById('route').value
+					var time = document.getElementById('time').value
+					var price = document.getElementById('price').value
+					var verificationCode = document.getElementById('verificationCode').value
+
+					var dateObj = new Date(time)
+					var formattedDate =
+						('0' + dateObj.getDate()).slice(-2) +
+						'.' +
+						('0' + (dateObj.getMonth() + 1)).slice(-2) +
+						'.' +
+						dateObj.getFullYear().toString().slice(-2)
+					var formattedTime = ('0' + dateObj.getHours()).slice(-2) + ':' + ('0' + dateObj.getMinutes()).slice(-2)
+					var formattedDateTime = formattedDate + ' ' + formattedTime
+
+					var fullTicketCode = additionalNumber ? `(${additionalNumber})${ticketNumber}` : ticketNumber
+
+					// Save ticket to localStorage
+					saveTicketToLocalStorage({
+						transportType,
+						ticketNumber,
+						additionalNumber,
+						route,
+						time: formattedDateTime,
+						price,
+						verificationCode,
+						createdAt: Date.now(),
+					})
+
+					var ticketTemplate = document.getElementById('ticketCard').cloneNode(true)
+					ticketTemplate.removeAttribute('id')
+					ticketTemplate.style.display = 'block'
+
+					var container = document.getElementById('openCustomModal')
+					container.style.display = 'block'
+					container.prepend(ticketTemplate)
+
+					var routeNumberEl = ticketTemplate.querySelector('#routeNumber')
+					var ticketCodeEl = ticketTemplate.querySelector('#ticketCode')
+					var ticketTimeEl = ticketTemplate.querySelector('#ticketTime')
+					var ticketPriceEl = ticketTemplate.querySelector('#ticketPrice')
+					var verificationCodeEl = ticketTemplate.querySelector('#verificationCodeDisplay')
+					var transportIconEl = ticketTemplate.querySelector('#transportIcon')
+
+					if (routeNumberEl) routeNumberEl.textContent = route
+					if (ticketCodeEl) ticketCodeEl.textContent = fullTicketCode
+					if (ticketTimeEl) ticketTimeEl.textContent = formattedDateTime
+					if (ticketPriceEl) ticketPriceEl.textContent = price + ' ₸'
+					if (verificationCodeEl)
+						verificationCodeEl.innerHTML =
+							verificationCode + ' <img src="img/qr.png" alt="QR код" class="qr-icon mx-1" />'
+
+					var transportText = transportType === 'bus' ? 'Автобус' : 'Троллейбус'
+					var transportIconSrc = transportType === 'bus' ? 'img/bus.png' : 'img/trolleybus.png'
+
+					var transportTextEl = ticketTemplate.querySelector('.transportTypeText')
+					if (transportTextEl) transportTextEl.textContent = transportText
+					if (transportIconEl) transportIconEl.src = transportIconSrc
+
+					ticketTemplate.addEventListener('click', function () {
+						const customModal = document.getElementById('customModal')
+						const modalContent = customModal.querySelector('.custom-modal-content')
+
+						// Apply opening animation classes
+						modalContent.classList.remove('animate__fadeOutDownBig')
+						modalContent.classList.add('animate__animated', 'animate__fadeInUpBig', 'animate__faster')
+
+						document.getElementById('modalRouteNumber').textContent = route
+						var modalTicketCodeEl = document.getElementById('modalTicketCode')
+
+						if (modalTicketCodeEl) {
+							modalTicketCodeEl.textContent =
+								fullTicketCode.length >= 13 ? `(${additionalNumber})${ticketNumber.slice(0, 4)}...` : fullTicketCode
+						}
+
+						document.getElementById('modalTicketTime').textContent = formattedDateTime
+						document.getElementById('modalVerificationCodeDisplay').textContent = verificationCode
+						document.getElementById('modalTransportIcon').src = transportIconSrc
+						customModal.style.display = 'block'
+
+						// Remove animation classes after animation completes to prevent conflicts
+						modalContent.addEventListener(
+							'animationend',
+							function handler() {
+								modalContent.classList.remove('animate__animated', 'animate__fadeInUpBig', 'animate__faster')
+								modalContent.removeEventListener('animationend', handler)
+							},
+							{ once: true },
+						)
+					})
+
+					var myModal = bootstrap.Modal.getInstance(addTicketModal)
+					myModal.hide()
+
+					document.getElementById('ticketForm').reset()
+				})
+
+				// Add animation for closing customModal
+				document.getElementById('closeCustomModal').addEventListener('click', function () {
+					const customModal = document.getElementById('customModal')
+					const modalContent = customModal.querySelector('.custom-modal-content')
+
+					// Apply closing animation classes
+					modalContent.classList.add('animate__animated', 'animate__fadeOutDownBig', 'animate__faster')
+
+					// Wait for animation to complete before hiding modal
+					modalContent.addEventListener(
+						'animationend',
+						function handler() {
+							modalContent.classList.remove('animate__animated', 'animate__fadeOutDownBig', 'animate__faster')
+							modalContent.classList.add('animate__fadeInUpBig') // Restore opening animation class
+							customModal.style.display = 'none'
+							modalContent.removeEventListener('animationend', handler) // Clean up listener
+						},
+						{ once: true },
+					)
+				})
+
+				// Add event listener for clear button
+				document.querySelector('.btn.btn-danger').addEventListener('click', function (event) {
+					event.preventDefault()
+					clearLocalStorage()
+				})
+
+				function saveTicketToLocalStorage(ticket) {
+					const tickets = JSON.parse(localStorage.getItem('tickets') || '[]')
+					tickets.push(ticket)
+					localStorage.setItem('tickets', JSON.stringify(tickets))
+					// Clean up expired tickets
+					cleanupExpiredTickets()
+				}
+
+				function loadStoredTickets() {
+					const tickets = JSON.parse(localStorage.getItem('tickets') || '[]')
+					const validTickets = cleanupExpiredTickets(tickets)
+					const container = document.getElementById('openCustomModal')
+					container.style.display = validTickets.length ? 'block' : 'none'
+
+					validTickets.forEach(ticket => {
+						var ticketTemplate = document.getElementById('ticketCard').cloneNode(true)
+						ticketTemplate.removeAttribute('id')
+						ticketTemplate.style.display = 'block'
+
+						var routeNumberEl = ticketTemplate.querySelector('#routeNumber')
+						var ticketCodeEl = ticketTemplate.querySelector('#ticketCode')
+						var ticketTimeEl = ticketTemplate.querySelector('#ticketTime')
+						var ticketPriceEl = ticketTemplate.querySelector('#ticketPrice')
+						var verificationCodeEl = ticketTemplate.querySelector('#verificationCodeDisplay')
+						var transportIconEl = ticketTemplate.querySelector('#transportIcon')
+
+						var fullTicketCode = ticket.additionalNumber
+							? `(${ticket.additionalNumber})${ticket.ticketNumber}`
+							: ticket.ticketNumber
+
+						if (routeNumberEl) routeNumberEl.textContent = ticket.route
+						if (ticketCodeEl) ticketCodeEl.textContent = fullTicketCode
+						if (ticketTimeEl) ticketTimeEl.textContent = ticket.time
+						if (ticketPriceEl) ticketPriceEl.textContent = ticket.price + ' ₸'
+						if (verificationCodeEl)
+							verificationCodeEl.innerHTML =
+								ticket.verificationCode + ' <img src="img/qr.png" alt="QR код" class="qr-icon mx-1" />'
+
+						var transportText = ticket.transportType === 'bus' ? 'Автобус' : 'Троллейбус'
+						var transportIconSrc = ticket.transportType === 'bus' ? 'img/bus.png' : 'img/trolleybus.png'
+
+						var transportTextEl = ticketTemplate.querySelector('.transportTypeText')
+						if (transportTextEl) transportTextEl.textContent = transportText
+						if (transportIconEl) transportIconEl.src = transportIconSrc
+
+						ticketTemplate.addEventListener('click', function () {
+							const customModal = document.getElementById('customModal')
+							const modalContent = customModal.querySelector('.custom-modal-content')
+
+							// Apply opening animation classes
+							modalContent.classList.remove('animate__fadeOutDownBig')
+							modalContent.classList.add('animate__animated', 'animate__fadeInUpBig', 'animate__faster')
+
+							document.getElementById('modalRouteNumber').textContent = ticket.route
+							var modalTicketCodeEl = document.getElementById('modalTicketCode')
+
+							if (modalTicketCodeEl) {
+								modalTicketCodeEl.textContent =
+									fullTicketCode.length >= 13
+										? `(${ticket.additionalNumber})${ticket.ticketNumber.slice(0, 4)}...`
+										: fullTicketCode
+							}
+
+							document.getElementById('modalTicketTime').textContent = ticket.time
+							document.getElementById('modalVerificationCodeDisplay').textContent = ticket.verificationCode
+							document.getElementById('modalTransportIcon').src = transportIconSrc
+							customModal.style.display = 'block'
+
+							// Remove animation classes after animation completes
+							modalContent.addEventListener(
+								'animationend',
+								function handler() {
+									modalContent.classList.remove('animate__animated', 'animate__fadeInUpBig', 'animate__faster')
+									modalContent.removeEventListener('animationend', handler)
+								},
+								{ once: true },
+							)
+						})
+
+						container.prepend(ticketTemplate)
+					})
+				}
+
+				function cleanupExpiredTickets(tickets = null) {
+					const TWELVE_HOURS = 12 * 60 * 60 * 1000 // 12 hours in milliseconds
+					tickets = tickets || JSON.parse(localStorage.getItem('tickets') || '[]')
+					const now = Date.now()
+					const validTickets = tickets.filter(ticket => now - ticket.createdAt < TWELVE_HOURS)
+					localStorage.setItem('tickets', JSON.stringify(validTickets))
+					return validTickets
+				}
+
+				function clearLocalStorage() {
+					localStorage.removeItem('tickets')
+					const container = document.getElementById('openCustomModal')
+					container.innerHTML = '' // Clear displayed tickets
+					container.style.display = 'none' // Hide container
+				}
+			})
+		</script>
+	</body>
+</html>
