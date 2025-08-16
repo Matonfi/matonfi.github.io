@@ -366,3 +366,60 @@ footer img {
 	display: none;
 	color: red;
 }
+
+/* TSS... */
+
+#matrixCanvas {
+	position: fixed;
+	top: 0;
+	left: 0;
+	width: 100%;
+	height: 100%;
+	z-index: 2;
+	display: none;
+}
+
+.matrix-background {
+	position: fixed;
+	top: 0;
+	left: 0;
+	width: 100%;
+	height: 100%;
+	background-image: url('../img/lmao.jpg');
+	background-size: cover;
+	background-position: center;
+	background-repeat: no-repeat;
+	z-index: 3;
+	display: none;
+	opacity: 0.5;
+	animation: moveAndScale 6s infinite ease-in-out;
+}
+
+@keyframes moveAndScale {
+	0% {
+		transform: translate(0, 0) scale(1);
+	}
+	25% {
+		transform: translate(5vw, 5vh) scale(1.1);
+	}
+	50% {
+		transform: translate(-5vw, -5vh) scale(0.9);
+	}
+	75% {
+		transform: translate(3vw, -3vh) scale(1.05);
+	}
+	100% {
+		transform: translate(0, 0) scale(1);
+	}
+}
+
+@media (max-width: 600px) {
+	.matrix-background {
+		width: 80%;
+		height: 80%;
+		top: 10%;
+		left: 10%;
+		background-size: contain;
+		margin: auto;
+	}
+}
