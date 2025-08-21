@@ -281,67 +281,8 @@
 						createdAt: Date.now(),
 					})
 
-					var ticketTemplate = document.getElementById('ticketCard').cloneNode(true)
-					ticketTemplate.removeAttribute('id')
-					ticketTemplate.style.display = 'block'
-
-					var container = document.getElementById('openCustomModal')
-					container.style.display = 'block'
-					container.prepend(ticketTemplate)
-
-					var routeNumberEl = ticketTemplate.querySelector('#routeNumber')
-					var ticketCodeEl = ticketTemplate.querySelector('#ticketCode')
-					var ticketTimeEl = ticketTemplate.querySelector('#ticketTime')
-					var ticketPriceEl = ticketTemplate.querySelector('#ticketPrice')
-					var verificationCodeEl = ticketTemplate.querySelector('#verificationCodeDisplay')
-					var transportIconEl = ticketTemplate.querySelector('#transportIcon')
-
-					if (routeNumberEl) routeNumberEl.textContent = route
-					if (ticketCodeEl) ticketCodeEl.textContent = fullTicketCode
-					if (ticketTimeEl) ticketTimeEl.textContent = formattedDateTime
-					if (ticketPriceEl) ticketPriceEl.textContent = price + ' ₸'
-					if (verificationCodeEl)
-						verificationCodeEl.innerHTML =
-							verificationCode + ' <img src="img/qr.png" alt="QR код" class="qr-icon mx-1" />'
-
-					var transportText = transportType === 'bus' ? 'Автобус' : 'Троллейбус'
-					var transportIconSrc = transportType === 'bus' ? 'img/bus.png' : 'img/trolleybus.png'
-
-					var transportTextEl = ticketTemplate.querySelector('.transportTypeText')
-					if (transportTextEl) transportTextEl.textContent = transportText
-					if (transportIconEl) transportIconEl.src = transportIconSrc
-
-					ticketTemplate.addEventListener('click', function () {
-						const customModal = document.getElementById('customModal')
-						const modalContent = customModal.querySelector('.custom-modal-content')
-
-						// Apply opening animation classes
-						modalContent.classList.remove('animate__fadeOutDownBig')
-						modalContent.classList.add('animate__animated', 'animate__fadeInUpBig', 'animate__faster')
-
-						document.getElementById('modalRouteNumber').textContent = route
-						var modalTicketCodeEl = document.getElementById('modalTicketCode')
-
-						if (modalTicketCodeEl) {
-							modalTicketCodeEl.textContent =
-								fullTicketCode.length >= 13 ? `(${additionalNumber})${ticketNumber.slice(0, 4)}...` : fullTicketCode
-						}
-
-						document.getElementById('modalTicketTime').textContent = formattedDateTime
-						document.getElementById('modalVerificationCodeDisplay').textContent = verificationCode
-						document.getElementById('modalTransportIcon').src = transportIconSrc
-						customModal.style.display = 'block'
-
-						// Remove animation classes after animation completes to prevent conflicts
-						modalContent.addEventListener(
-							'animationend',
-							function handler() {
-								modalContent.classList.remove('animate__animated', 'animate__fadeInUpBig', 'animate__faster')
-								modalContent.removeEventListener('animationend', handler)
-							},
-							{ once: true },
-						)
-					})
+					// Reload tickets to apply sorting
+					loadStoredTickets()
 
 					var myModal = bootstrap.Modal.getInstance(addTicketModal)
 					myModal.hide()
@@ -387,13 +328,42 @@
 				function loadStoredTickets() {
 					const tickets = JSON.parse(localStorage.getItem('tickets') || '[]')
 					const validTickets = cleanupExpiredTickets(tickets)
-					const container = document.getElementById('openCustomModal')
-					container.style.display = validTickets.length ? 'block' : 'none'
+					const TWO_HOURS = 2 * 60 * 60 * 1000 // 2 hours in milliseconds
+					const now = Date.now()
 
-					validTickets.forEach(ticket => {
+					// Separate active and inactive tickets
+					const activeTickets = validTickets
+						.filter(ticket => now - ticket.createdAt < TWO_HOURS)
+						.sort((a, b) => b.createdAt - a.createdAt) // Sort by createdAt descending (newest first)
+					const inactiveTickets = validTickets
+						.filter(ticket => now - ticket.createdAt >= TWO_HOURS)
+						.sort((a, b) => b.createdAt - a.createdAt) // Sort by createdAt descending (newest first)
+
+					const sortedTickets = [...activeTickets, ...inactiveTickets]
+
+					const container = document.getElementById('openCustomModal')
+					container.innerHTML = '' // Clear existing tickets
+					container.style.display = sortedTickets.length ? 'block' : 'none'
+
+					sortedTickets.forEach(ticket => {
 						var ticketTemplate = document.getElementById('ticketCard').cloneNode(true)
 						ticketTemplate.removeAttribute('id')
 						ticketTemplate.style.display = 'block'
+
+						// Update status for inactive tickets
+						if (now - ticket.createdAt >= TWO_HOURS) {
+							ticketTemplate.id = 'inactiveTicketCard'
+							const yellowStrip = ticketTemplate.querySelector('.yellow-strip')
+							if (yellowStrip) {
+								yellowStrip.classList.remove('yellow-strip')
+								yellowStrip.classList.add('inactive-yellow-strip')
+							}
+							const yellowStripImg = ticketTemplate.querySelector('.inactive-yellow-strip img')
+							if (yellowStripImg) {
+								yellowStripImg.src = 'img/onay_out.png'
+								yellowStripImg.alt = 'Image in Gray Strip'
+							}
+						}
 
 						var routeNumberEl = ticketTemplate.querySelector('#routeNumber')
 						var ticketCodeEl = ticketTemplate.querySelector('#ticketCode')
@@ -412,7 +382,7 @@
 						if (ticketPriceEl) ticketPriceEl.textContent = ticket.price + ' ₸'
 						if (verificationCodeEl)
 							verificationCodeEl.innerHTML =
-								ticket.verificationCode + ' <img src="img/qr.png" alt="QR код" class="qr-icon mx-1" />'
+								ticket.verificationCode + ' <img src="img/qr.png" alt="QR код" class="qr-icon mx-1">'
 
 						var transportText = ticket.transportType === 'bus' ? 'Автобус' : 'Троллейбус'
 						var transportIconSrc = ticket.transportType === 'bus' ? 'img/bus.png' : 'img/trolleybus.png'
@@ -421,41 +391,44 @@
 						if (transportTextEl) transportTextEl.textContent = transportText
 						if (transportIconEl) transportIconEl.src = transportIconSrc
 
-						ticketTemplate.addEventListener('click', function () {
-							const customModal = document.getElementById('customModal')
-							const modalContent = customModal.querySelector('.custom-modal-content')
+						// Add click listener only for active tickets
+						if (now - ticket.createdAt < TWO_HOURS) {
+							ticketTemplate.addEventListener('click', function () {
+								const customModal = document.getElementById('customModal')
+								const modalContent = customModal.querySelector('.custom-modal-content')
 
-							// Apply opening animation classes
-							modalContent.classList.remove('animate__fadeOutDownBig')
-							modalContent.classList.add('animate__animated', 'animate__fadeInUpBig', 'animate__faster')
+								// Apply opening animation classes
+								modalContent.classList.remove('animate__fadeOutDownBig')
+								modalContent.classList.add('animate__animated', 'animate__fadeInUpBig', 'animate__faster')
 
-							document.getElementById('modalRouteNumber').textContent = ticket.route
-							var modalTicketCodeEl = document.getElementById('modalTicketCode')
+								document.getElementById('modalRouteNumber').textContent = ticket.route
+								var modalTicketCodeEl = document.getElementById('modalTicketCode')
 
-							if (modalTicketCodeEl) {
-								modalTicketCodeEl.textContent =
-									fullTicketCode.length >= 13
-										? `(${ticket.additionalNumber})${ticket.ticketNumber.slice(0, 4)}...`
-										: fullTicketCode
-							}
+								if (modalTicketCodeEl) {
+									modalTicketCodeEl.textContent =
+										fullTicketCode.length >= 13
+											? `(${ticket.additionalNumber})${ticket.ticketNumber.slice(0, 4)}...`
+											: fullTicketCode
+								}
 
-							document.getElementById('modalTicketTime').textContent = ticket.time
-							document.getElementById('modalVerificationCodeDisplay').textContent = ticket.verificationCode
-							document.getElementById('modalTransportIcon').src = transportIconSrc
-							customModal.style.display = 'block'
+								document.getElementById('modalTicketTime').textContent = ticket.time
+								document.getElementById('modalVerificationCodeDisplay').textContent = ticket.verificationCode
+								document.getElementById('modalTransportIcon').src = transportIconSrc
+								customModal.style.display = 'block'
 
-							// Remove animation classes after animation completes
-							modalContent.addEventListener(
-								'animationend',
-								function handler() {
-									modalContent.classList.remove('animate__animated', 'animate__fadeInUpBig', 'animate__faster')
-									modalContent.removeEventListener('animationend', handler)
-								},
-								{ once: true },
-							)
-						})
+								// Remove animation classes after animation completes
+								modalContent.addEventListener(
+									'animationend',
+									function handler() {
+										modalContent.classList.remove('animate__animated', 'animate__fadeInUpBig', 'animate__faster')
+										modalContent.removeEventListener('animationend', handler)
+									},
+									{ once: true },
+								)
+							})
+						}
 
-						container.prepend(ticketTemplate)
+						container.appendChild(ticketTemplate)
 					})
 				}
 
@@ -474,6 +447,9 @@
 					container.innerHTML = '' // Clear displayed tickets
 					container.style.display = 'none' // Hide container
 				}
+
+				// Periodically reload tickets to update status
+				setInterval(loadStoredTickets, 60000)
 			})
 		</script>
 	</body>

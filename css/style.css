@@ -119,6 +119,20 @@ header {
 	justify-content: center;
 }
 
+.card .inactive-yellow-strip {
+	position: absolute;
+	top: 0;
+	left: 0;
+	width: 35px;
+	height: 100%;
+	background-color: #dde8eb;
+	border-top-left-radius: 8px;
+	border-bottom-left-radius: 8px;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+}
+
 #text_01 {
 	font-size: 13px !important;
 	font-weight: 700;
@@ -140,6 +154,12 @@ header {
 }
 
 .card .yellow-strip img {
+	max-width: 100px;
+	max-height: 65px;
+	object-fit: contain;
+}
+
+.card .inactive-yellow-strip img {
 	max-width: 100px;
 	max-height: 65px;
 	object-fit: contain;
