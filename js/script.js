@@ -93,18 +93,57 @@ document.addEventListener('DOMContentLoaded', function () {
 		const tickets = JSON.parse(localStorage.getItem('tickets') || '[]')
 		tickets.push(ticket)
 		localStorage.setItem('tickets', JSON.stringify(tickets))
+		console.log('Билет сохранен в localStorage:', ticket)
 	}
+
+	// Заглушка для loadStoredTickets, если не определена
+	window.loadStoredTickets =
+		window.loadStoredTickets ||
+		function () {
+			const tickets = JSON.parse(localStorage.getItem('tickets') || '[]')
+			console.log('loadStoredTickets: Билеты из localStorage:', tickets)
+			// Предполагается, что здесь обновляется интерфейс (например, список билетов)
+			// Добавьте код для отображения билетов, если он известен
+			const ticketList = document.getElementById('ticketList') // Замените на ваш элемент
+			if (ticketList) {
+				ticketList.innerHTML = tickets
+					.map(
+						ticket => `
+            <div class="ticket">
+              <p>${ticket.transportType} ${ticket.route} (${ticket.additionalNumber || ''})${ticket.ticketNumber}</p>
+              <p>Дата: ${ticket.time}</p>
+              <p>Цена: ${ticket.price}</p>
+              <p>Код: ${ticket.verificationCode}</p>
+            </div>
+          `,
+					)
+					.join('')
+			}
+		}
 
 	document.getElementById('ticketForm').addEventListener('submit', async function (event) {
 		event.preventDefault()
+		console.log('Форма отправлена на устройстве:', navigator.userAgent)
 
-		var transportType = document.querySelector('input[name="transportType"]:checked').value
-		var ticketNumber = document.getElementById('ticketNumber').value
-		var additionalNumber = document.getElementById('additionalNumber').value || ''
-		var route = document.getElementById('route').value
-		var time = document.getElementById('time').value
-		var price = document.getElementById('price').value
-		var verificationCode = document.getElementById('verificationCode').value
+		const transportType = document.querySelector('input[name="transportType"]:checked')?.value
+		const ticketNumber = document.getElementById('ticketNumber').value
+		const additionalNumber = document.getElementById('additionalNumber').value || ''
+		const route = document.getElementById('route').value
+		const time = document.getElementById('time').value
+		const price = document.getElementById('price').value
+		const verificationCode = document.getElementById('verificationCode').value
+
+		// Проверка валидности данных
+		if (!transportType) {
+			alert('Выберите тип транспорта')
+			console.log('Ошибка: Тип транспорта не выбран')
+			return
+		}
+		if (!ticketNumber || !route) {
+			alert('Заполните обязательные поля: Номер билета и Маршрут')
+			console.log('Ошибка: Обязательные поля пусты', { ticketNumber, route })
+			return
+		}
 
 		// Проверка уникальности в bus_data
 		const { data: existing, error: selectError } = await supabase
@@ -116,6 +155,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
 		if (selectError) {
 			alert('Ошибка при проверке данных: ' + selectError.message)
+			console.error('Ошибка проверки уникальности:', selectError)
 			return
 		}
 
@@ -131,21 +171,31 @@ document.addEventListener('DOMContentLoaded', function () {
 			])
 			if (error) {
 				alert('Ошибка при сохранении в базу данных: ' + error.message)
+				console.error('Ошибка сохранения в bus_data:', error)
 				return
 			}
+			console.log('Запись добавлена в bus_data:', {
+				transport: route,
+				additional: additionalNumber,
+				number: ticketNumber,
+				transport_type: transportType,
+			})
+		} else {
+			console.log('Запись уже существует:', { ticketNumber, additionalNumber, route })
 		}
 
-		var dateObj = new Date(time)
-		var formattedDate =
+		// Форматирование времени для localStorage
+		const dateObj = new Date(time)
+		const formattedDate =
 			('0' + dateObj.getDate()).slice(-2) +
 			'.' +
 			('0' + (dateObj.getMonth() + 1)).slice(-2) +
 			'.' +
 			dateObj.getFullYear().toString().slice(-2)
-		var formattedTime = ('0' + dateObj.getHours()).slice(-2) + ':' + ('0' + dateObj.getMinutes()).slice(-2)
-		var formattedDateTime = formattedDate + ' ' + formattedTime
+		const formattedTime = ('0' + dateObj.getHours()).slice(-2) + ':' + ('0' + dateObj.getMinutes()).slice(-2)
+		const formattedDateTime = formattedDate + ' ' + formattedTime
 
-		var fullTicketCode = additionalNumber ? `(${additionalNumber})${ticketNumber}` : ticketNumber
+		const fullTicketCode = additionalNumber ? `(${additionalNumber})${ticketNumber}` : ticketNumber
 
 		// Сохранение билета в localStorage
 		saveTicketToLocalStorage({
@@ -159,12 +209,27 @@ document.addEventListener('DOMContentLoaded', function () {
 			createdAt: Date.now(),
 		})
 
-		// Reload tickets to apply sorting
-		loadStoredTickets()
+		// Безопасный вызов loadStoredTickets
+		if (typeof window.loadStoredTickets === 'function') {
+			window.loadStoredTickets()
+		} else {
+			console.warn('loadStoredTickets не определена, используется заглушка')
+		}
 
-		var myModal = bootstrap.Modal.getInstance(document.getElementById('addTicketModal'))
-		myModal.hide()
+		// Закрытие модального окна
+		try {
+			const myModal = bootstrap.Modal.getInstance(document.getElementById('addTicketModal'))
+			if (myModal) {
+				myModal.hide()
+			} else {
+				console.warn('Модальное окно addTicketModal не найдено')
+			}
+		} catch (error) {
+			console.error('Ошибка при закрытии модального окна:', error)
+		}
 
+		// Сброс формы
 		document.getElementById('ticketForm').reset()
+		console.log('Форма сброшена')
 	})
 })
