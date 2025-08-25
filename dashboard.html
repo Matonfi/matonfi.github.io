@@ -183,7 +183,6 @@
 				}
 
 				.radio-group {
-					flex-direction: column;
 					gap: 8px;
 				}
 
@@ -198,15 +197,15 @@
 					font-size: 0.75rem;
 				}
 
-				.table .actions {
-					flex-direction: column;
-					gap: 4px;
-				}
-
 				.table-container {
 					max-width: 100%;
 					-webkit-overflow-scrolling: touch;
 				}
+			}
+
+			.table tbody td,
+			.table tbody th {
+				height: 3.6rem !important;
 			}
 		</style>
 	</head>
@@ -239,7 +238,7 @@
 							</a>
 							<ul class="nav mb-0 mx-auto d-flex align-items-center">
 								<li class="nav-item">
-									<a href="#" class="nav-link px-2 text-secondary" id="text-main">Мои билеты</a>
+									<a href="#" class="nav-link px-2 text-secondary" id="text-main">Панель управления</a>
 								</li>
 							</ul>
 						</div>
@@ -247,7 +246,7 @@
 				</div>
 			</header>
 			<div class="container">
-				<h2 class="text-center mb-4">ПАНЕЛЬ УПРАВЛЕНИЯ</h2>
+				<!-- <h2 class="text-center mb-4">ПАНЕЛЬ УПРАВЛЕНИЯ</h2> -->
 
 				<!-- Форма для добавления/редактирования -->
 				<div class="dashboard-card mb-4">
@@ -256,7 +255,7 @@
 						<input type="hidden" id="editId" />
 						<div class="form-group">
 							<label for="transportType" class="form-label">Тип транспорта</label>
-							<div>
+							<div class="radio-group">
 								<input type="radio" id="bus" name="transportType" value="bus" checked />
 								<label for="bus">Автобус</label>
 								<input type="radio" id="trolleybus" name="transportType" value="trolleybus" />
@@ -279,18 +278,17 @@
 						<button type="button" id="cancelEdit" class="btn btn-danger d-none">Отмена</button>
 					</form>
 				</div>
-
 				<!-- Таблица данных -->
 				<div class="table-container">
 					<table class="table">
 						<thead>
 							<tr>
 								<th>ID</th>
-								<th>Created At</th>
-								<th>Number</th>
-								<th>Additional</th>
-								<th>Transport</th>
-								<th>Transport Type</th>
+								<th>Тип транспорта</th>
+								<th>Добавочный номер</th>
+								<th>Номер транспорта</th>
+								<th>Транспорт</th>
+								<th>Дата создания</th>
 								<th>Действия</th>
 							</tr>
 						</thead>
@@ -329,13 +327,13 @@
 						const tr = document.createElement('tr')
 						tr.innerHTML = `
         <td>${row.id}</td>
-        <td>${new Date(row.created_at).toLocaleString()}</td>
-        <td>${row.number}</td>
+        <td><img src="img/${row.transport_type}.png" alt="${row.transport_type}" style="height:18px;"/></td>
         <td>${row.additional || ''}</td>
+        <td>${row.number}</td>
         <td>${row.transport}</td>
-        <td>${row.transport_type}</td>
+        <td>${new Date(row.created_at).toLocaleString()}</td>
         <td class="actions">
-          <button class="btn btn-warning btn-sm edit-btn" data-id="${row.id}">Редактировать</button>
+          <button class="btn btn-success btn-sm edit-btn" data-id="${row.id}">Редактировать</button>
           <button class="btn btn-danger btn-sm delete-btn" data-id="${row.id}">Удалить</button>
         </td>
       `
