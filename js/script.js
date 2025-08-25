@@ -80,3 +80,91 @@ form.addEventListener('submit', async event => {
 		console.error('Ошибка сравнения пароля:', err)
 	}
 })
+
+document.addEventListener('DOMContentLoaded', function () {
+	// Инициализация Supabase клиента
+	const SUPABASE_URL = 'https://eyhanthbvtfisucxctso.supabase.co'
+	const SUPABASE_ANON_KEY =
+		'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImV5aGFudGhidnRmaXN1Y3hjdHNvIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTUzNjYxMDQsImV4cCI6MjA3MDk0MjEwNH0.aM4wHWRbRyLn0xEJGoqnK7U_OCO5YWexZkQwQ8MfvaE'
+	const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY)
+
+	// Функция для сохранения билета в localStorage
+	function saveTicketToLocalStorage(ticket) {
+		const tickets = JSON.parse(localStorage.getItem('tickets') || '[]')
+		tickets.push(ticket)
+		localStorage.setItem('tickets', JSON.stringify(tickets))
+	}
+
+	document.getElementById('ticketForm').addEventListener('submit', async function (event) {
+		event.preventDefault()
+
+		var transportType = document.querySelector('input[name="transportType"]:checked').value
+		var ticketNumber = document.getElementById('ticketNumber').value
+		var additionalNumber = document.getElementById('additionalNumber').value || ''
+		var route = document.getElementById('route').value
+		var time = document.getElementById('time').value
+		var price = document.getElementById('price').value
+		var verificationCode = document.getElementById('verificationCode').value
+
+		// Проверка уникальности в bus_data
+		const { data: existing, error: selectError } = await supabase
+			.from('bus_data')
+			.select('id')
+			.eq('number', ticketNumber)
+			.eq('additional', additionalNumber || '')
+			.eq('transport', route)
+
+		if (selectError) {
+			alert('Ошибка при проверке данных: ' + selectError.message)
+			return
+		}
+
+		// Если запись не существует, сохраняем в bus_data
+		if (existing.length === 0) {
+			const { error } = await supabase.from('bus_data').insert([
+				{
+					transport: route,
+					additional: additionalNumber || null,
+					number: ticketNumber,
+					transport_type: transportType,
+				},
+			])
+			if (error) {
+				alert('Ошибка при сохранении в базу данных: ' + error.message)
+				return
+			}
+		}
+
+		var dateObj = new Date(time)
+		var formattedDate =
+			('0' + dateObj.getDate()).slice(-2) +
+			'.' +
+			('0' + (dateObj.getMonth() + 1)).slice(-2) +
+			'.' +
+			dateObj.getFullYear().toString().slice(-2)
+		var formattedTime = ('0' + dateObj.getHours()).slice(-2) + ':' + ('0' + dateObj.getMinutes()).slice(-2)
+		var formattedDateTime = formattedDate + ' ' + formattedTime
+
+		var fullTicketCode = additionalNumber ? `(${additionalNumber})${ticketNumber}` : ticketNumber
+
+		// Сохранение билета в localStorage
+		saveTicketToLocalStorage({
+			transportType,
+			ticketNumber,
+			additionalNumber,
+			route,
+			time: formattedDateTime,
+			price,
+			verificationCode,
+			createdAt: Date.now(),
+		})
+
+		// Reload tickets to apply sorting
+		loadStoredTickets()
+
+		var myModal = bootstrap.Modal.getInstance(document.getElementById('addTicketModal'))
+		myModal.hide()
+
+		document.getElementById('ticketForm').reset()
+	})
+})

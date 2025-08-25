@@ -154,50 +154,73 @@
 							<button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
 						</div>
 						<div class="modal-body">
-							<form id="ticketForm">
-								<div class="mb-3">
-									<label for="transportType" class="form-label">Тип транспорта</label>
-									<div>
-										<input type="radio" id="bus" name="transportType" value="bus" checked />
-										<label for="bus">Автобус</label>
-										<input type="radio" id="trolleybus" name="transportType" value="trolleybus" />
-										<label for="trolleybus">Троллейбус</label>
+							<!-- Кнопки переключения -->
+							<div class="toggle-buttons">
+								<button id="addTab" class="toggle-btn active">Добавить</button>
+								<button id="selectTab" class="toggle-btn">Выбрать</button>
+							</div>
+
+							<!-- Раздел "Добавить" -->
+							<div id="addSection" class="tab-content">
+								<form id="ticketForm">
+									<div class="form-group">
+										<label for="transportType" class="form-label">Тип транспорта</label>
+										<div>
+											<input type="radio" id="bus" name="transportType" value="bus" checked />
+											<label for="bus">Автобус</label>
+											<input type="radio" id="trolleybus" name="transportType" value="trolleybus" />
+											<label for="trolleybus">Троллейбус</label>
+										</div>
 									</div>
+									<div class="form-group">
+										<label for="additionalNumber" class="form-label">Добавочный номер</label>
+										<input type="text" class="form-control" id="additionalNumber" />
+									</div>
+									<div class="form-group">
+										<label for="ticketNumber" class="form-label">Номер транспорта</label>
+										<input type="text" class="form-control" id="ticketNumber" required />
+									</div>
+									<div class="form-group">
+										<label for="route" class="form-label">Маршрут</label>
+										<input type="text" class="form-control" id="route" required />
+									</div>
+									<div class="form-group">
+										<label for="time" class="form-label">Время</label>
+										<input type="datetime-local" class="form-control" id="time" required />
+									</div>
+									<div class="form-group">
+										<label for="codeLength" class="form-label">Длина кода проверки</label>
+										<input type="number" class="form-control" id="codeLength" min="1" value="9" required />
+									</div>
+									<div class="form-group">
+										<label for="verificationCode" class="form-label">Код проверки</label>
+										<input type="text" class="form-control" id="verificationCode" />
+									</div>
+									<button type="button" class="btn btn-primary" onclick="generateVerificationCode()">
+										Сгенерировать код
+									</button>
+									<div class="form-group">
+										<label for="price" class="form-label">Цена</label>
+										<input type="number" class="form-control" id="price" value="120" required />
+									</div>
+									<button type="submit" class="btn btn-primary">Добавить</button>
+									<button type="submit" class="btn btn-danger">Очистить</button>
+								</form>
+							</div>
+
+							<!-- Раздел "Выбрать" -->
+							<div id="selectSection" class="tab-content hidden">
+								<div class="form-group">
+									<input
+										type="text"
+										id="searchTransport"
+										class="form-control"
+										placeholder="Поиск по номеру транспорта" />
 								</div>
-								<div class="mb-3">
-									<label for="additionalNumber" class="form-label">Добавочный номер</label>
-									<input type="text" class="form-control" id="additionalNumber" />
+								<div class="transport-grid">
+									<!-- Номера транспорта добавляются динамически -->
 								</div>
-								<div class="mb-3">
-									<label for="ticketNumber" class="form-label">Номер транспорта</label>
-									<input type="text" class="form-control" id="ticketNumber" required />
-								</div>
-								<div class="mb-3">
-									<label for="route" class="form-label">Маршрут</label>
-									<input type="text" class="form-control" id="route" required />
-								</div>
-								<div class="mb-3">
-									<label for="time" class="form-label">Время</label>
-									<input type="datetime-local" class="form-control" id="time" required />
-								</div>
-								<div class="mb-3">
-									<label for="codeLength" class="form-label">Длина кода проверки</label>
-									<input type="number" class="form-control" id="codeLength" min="1" value="9" required />
-								</div>
-								<div class="mb-3">
-									<label for="verificationCode" class="form-label">Код проверки</label>
-									<input type="text" class="form-control" id="verificationCode" />
-								</div>
-								<button type="button" class="btn btn-primary" onclick="generateVerificationCode()">
-									Сгенерировать код
-								</button>
-								<div class="mb-3">
-									<label for="price" class="form-label">Цена</label>
-									<input type="number" class="form-control" id="price" value="120" required />
-								</div>
-								<button type="submit" class="btn btn-primary">Добавить</button>
-								<button type="submit" class="btn btn-danger">Очистить</button>
-							</form>
+							</div>
 						</div>
 					</div>
 				</div>
@@ -213,17 +236,16 @@
 		<script src="lib/jquery/jquery-3.7.1.min.js"></script>
 		<script src="lib/material-master/js/material.min.js"></script>
 		<script src="lib/mdl/material.min.js"></script>
+		<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 		<script>
 			function generateVerificationCode() {
 				const codeLength = parseInt(document.getElementById('codeLength').value) || 8
 				const characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789'
 				let verificationCode = ''
-
 				for (let i = 0; i < codeLength; i++) {
 					const randomIndex = Math.floor(Math.random() * characters.length)
 					verificationCode += characters.charAt(randomIndex)
 				}
-
 				document.getElementById('verificationCode').value = verificationCode
 				return verificationCode
 			}
@@ -450,6 +472,172 @@
 
 				// Periodically reload tickets to update status
 				setInterval(loadStoredTickets, 60000)
+			})
+
+			// Supabase-related script
+			document.addEventListener('DOMContentLoaded', () => {
+				// Инициализация Supabase клиента
+				const SUPABASE_URL = 'https://eyhanthbvtfisucxctso.supabase.co'
+				const SUPABASE_ANON_KEY =
+					'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImV5aGFudGhidnRmaXN1Y3hjdHNvIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTUzNjYxMDQsImV4cCI6MjA3MDk0MjEwNH0.aM4wHWRbRyLn0xEJGoqnK7U_OCO5YWexZkQwQ8MfvaE'
+				const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY)
+
+				const addTab = document.getElementById('addTab')
+				const selectTab = document.getElementById('selectTab')
+				const addSection = document.getElementById('addSection')
+				const selectSection = document.getElementById('selectSection')
+				const searchTransport = document.getElementById('searchTransport')
+
+				// Функция для получения текущего времени в формате datetime-local
+				function getCurrentDateTimeLocal() {
+					const now = new Date()
+					const year = now.getFullYear()
+					const month = String(now.getMonth() + 1).padStart(2, '0')
+					const day = String(now.getDate()).padStart(2, '0')
+					const hours = String(now.getHours()).padStart(2, '0')
+					const minutes = String(now.getMinutes()).padStart(2, '0')
+					return `${year}-${month}-${day}T${hours}:${minutes}`
+				}
+
+				// Функция для проверки уникальности и сохранения данных в таблицу bus_data
+				async function saveToBusData(transport, additional, number, transport_type) {
+					// Проверка, существует ли запись с такими number, additional, transport
+					const { data: existing, error: selectError } = await supabase
+						.from('bus_data')
+						.select('id')
+						.eq('number', number)
+						.eq('additional', additional || '')
+						.eq('transport', transport)
+
+					if (selectError) {
+						alert('Ошибка при проверке данных: ' + selectError.message)
+						return false
+					}
+
+					// Если запись уже существует, пропускаем вставку
+					if (existing.length > 0) {
+						return true // Пропускаем, так как запись уже есть
+					}
+
+					// Вставка новой записи
+					const { error } = await supabase
+						.from('bus_data')
+						.insert([{ transport, additional: additional || null, number, transport_type }])
+
+					if (error) {
+						alert('Ошибка при сохранении в базу данных: ' + error.message)
+						return false
+					}
+					return true
+				}
+
+				// Функция для получения данных из таблицы bus_data
+				async function fetchTransportNumbers() {
+					const { data, error } = await supabase
+						.from('bus_data')
+						.select('transport, additional, number, transport_type')
+
+					if (error) {
+						alert('Ошибка при получении данных: ' + error.message)
+						return []
+					}
+
+					// Формируем строки вида "<иконка> transport (additional)number"
+					return data.map(item => ({
+						display: `<img src="img/${item.transport_type}.png" alt="${
+							item.transport_type
+						}" class="i-transport-icon"> ${item.transport} ${item.additional ? `(${item.additional})` : ''}${
+							item.number
+						}`,
+						searchable: `${item.transport_type}-${item.transport} ${item.transport} ${item.additional || ''}${
+							item.number
+						}`,
+						transport_type: item.transport_type,
+						transport: item.transport,
+						additional: item.additional || '',
+						number: item.number,
+					}))
+				}
+
+				// Функция для отображения номеров транспорта
+				function renderTransportNumbers(numbers) {
+					const container = selectSection.querySelector('.transport-grid')
+					container.innerHTML = ''
+					numbers.forEach(item => {
+						const div = document.createElement('div')
+						div.className = 'transport-card'
+						div.innerHTML = `<p class="transport-number">${item.display}</p>`
+						div.addEventListener('click', async event => {
+							event.preventDefault()
+							event.stopPropagation()
+							const transportType =
+								item.transport_type.toLowerCase() === 'bus' || item.transport_type.toLowerCase() === 'trolleybus'
+									? item.transport_type.toLowerCase()
+									: 'bus'
+							const radio = document.querySelector(`input[name="transportType"][value="${transportType}"]`)
+							if (radio) {
+								radio.checked = true
+							}
+							const additionalNumberInput = document.getElementById('additionalNumber')
+							const ticketNumberInput = document.getElementById('ticketNumber')
+							const routeInput = document.getElementById('route')
+							const timeInput = document.getElementById('time')
+
+							if (additionalNumberInput) additionalNumberInput.value = item.additional
+							if (ticketNumberInput) ticketNumberInput.value = item.number
+							if (routeInput) routeInput.value = item.transport
+							if (timeInput) timeInput.value = getCurrentDateTimeLocal()
+
+							// Сохранение в bus_data (если еще не существует)
+							await saveToBusData(item.transport, item.additional, item.number, transportType)
+
+							// Переключение на вкладку "Добавить"
+							if (addTab && selectTab && addSection && selectSection) {
+								addTab.classList.add('active')
+								selectTab.classList.remove('active')
+								addSection.classList.remove('hidden')
+								selectSection.classList.add('hidden')
+								try {
+									const tab = new bootstrap.Tab(addTab)
+									tab.show()
+								} catch (error) {
+									alert('Ошибка при переключении на вкладку "Добавить": ' + error.message)
+								}
+							}
+						})
+						container.appendChild(div)
+					})
+				}
+
+				// Загрузка и отображение данных при открытии вкладки "Выбрать"
+				async function loadAndRenderTransportNumbers() {
+					const transportNumbers = await fetchTransportNumbers()
+					renderTransportNumbers(transportNumbers)
+				}
+
+				// Логика переключения вкладок
+				addTab.addEventListener('click', () => {
+					addTab.classList.add('active')
+					selectTab.classList.remove('active')
+					addSection.classList.remove('hidden')
+					selectSection.classList.add('hidden')
+				})
+
+				selectTab.addEventListener('click', async () => {
+					selectTab.classList.add('active')
+					addTab.classList.remove('active')
+					selectSection.classList.remove('hidden')
+					addSection.classList.add('hidden')
+					await loadAndRenderTransportNumbers()
+				})
+
+				// Функция поиска
+				searchTransport.addEventListener('input', async e => {
+					const query = e.target.value.toLowerCase()
+					const transportNumbers = await fetchTransportNumbers()
+					const filteredNumbers = transportNumbers.filter(item => item.searchable.toLowerCase().includes(query))
+					renderTransportNumbers(filteredNumbers)
+				})
 			})
 		</script>
 	</body>

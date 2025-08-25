@@ -1,0 +1,454 @@
+<!DOCTYPE html>
+<html lang="en">
+	<head>
+		<meta charset="UTF-8" />
+		<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+		<title>Document</title>
+		<link rel="stylesheet" href="css/style.css" />
+		<link rel="stylesheet" href="lib/bootstrap-5.2.3-dist/css/bootstrap.min.css" />
+		<link rel="stylesheet" href="lib/bootstrap-5.2.3-dist/css/bootstrap.min.css.map" />
+		<link rel="stylesheet" href="lib/material-master/css/material.min.css" />
+		<link rel="stylesheet" href="lib/mdl/material.min.css" />
+		<link rel="preconnect" href="https://fonts.googleapis.com" />
+		<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+		<link
+			href="https://fonts.googleapis.com/css2?family=Montserrat:ital,wght@0,100..900;1,100..900&display=swap"
+			rel="stylesheet" />
+		<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css" />
+
+		<style>
+			.container {
+				max-width: 1200px;
+				margin: 0 auto;
+				padding: 16px;
+				font-family: 'Roboto', -apple-system, BlinkMacSystemFont, sans-serif;
+			}
+
+			.dashboard-title {
+				font-size: 1.5rem;
+				font-weight: 500;
+				color: #1f2937;
+				text-align: center;
+				margin-bottom: 24px;
+			}
+
+			.dashboard-card {
+				background-color: #ffffff;
+				border-radius: 8px;
+				box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+				padding: 16px;
+				margin-bottom: 24px;
+			}
+
+			.form-group {
+				margin-bottom: 16px;
+			}
+
+			.form-label {
+				display: block;
+				font-size: 0.875rem;
+				font-weight: 500;
+				color: #374151;
+				margin-bottom: 8px;
+			}
+
+			.form-control {
+				width: 100%;
+				padding: 8px 12px;
+				border: 1px solid #d1d5db;
+				border-radius: 6px;
+				font-size: 0.875rem;
+				color: #1f2937;
+				transition: border-color 0.2s ease, box-shadow 0.2s ease;
+			}
+
+			.form-control:focus {
+				outline: none;
+				border-color: #3b82f6;
+				box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+			}
+
+			.radio-group {
+				display: flex;
+				gap: 16px;
+				margin-bottom: 16px;
+			}
+
+			.radio-group label {
+				font-size: 0.875rem;
+				color: #374151;
+			}
+
+			.btn {
+				padding: 8px 16px;
+				border-radius: 6px;
+				font-size: 0.875rem;
+				font-weight: 500;
+				cursor: pointer;
+				transition: background-color 0.2s ease, transform 0.1s ease;
+				border: none;
+			}
+
+			.btn-primary {
+				background-color: #3b82f6;
+				color: #ffffff;
+			}
+
+			.btn-primary:hover {
+				background-color: #2563eb;
+				transform: translateY(-1px);
+			}
+
+			.btn-danger {
+				background-color: #ef4444;
+				color: #ffffff;
+			}
+
+			.btn-danger:hover {
+				background-color: #dc2626;
+				transform: translateY(-1px);
+			}
+
+			.btn-warning {
+				background-color: #f59e0b;
+				color: #ffffff;
+			}
+
+			.btn-warning:hover {
+				background-color: #d97706;
+				transform: translateY(-1px);
+			}
+
+			.table-container {
+				overflow-x: auto;
+				border-radius: 8px;
+				box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+				background-color: #ffffff;
+			}
+
+			.table {
+				width: 100%;
+				border-collapse: separate;
+				border-spacing: 0;
+				font-size: 0.875rem;
+			}
+
+			.table th,
+			.table td {
+				padding: 12px;
+				text-align: left;
+				border-bottom: 1px solid #e5e7eb;
+				white-space: nowrap;
+			}
+
+			.table th {
+				font-weight: 500;
+				color: #374151;
+				background-color: #f9fafb;
+			}
+
+			.table td {
+				color: #1f2937;
+			}
+
+			.table tr:last-child td {
+				border-bottom: none;
+			}
+
+			.table .actions {
+				display: flex;
+				gap: 8px;
+			}
+
+			@media (max-width: 640px) {
+				.container {
+					padding: 12px;
+				}
+
+				.dashboard-title {
+					font-size: 1.25rem;
+				}
+
+				.dashboard-card {
+					padding: 12px;
+				}
+
+				.form-group {
+					margin-bottom: 12px;
+				}
+
+				.form-control {
+					font-size: 0.75rem;
+					padding: 6px 10px;
+				}
+
+				.radio-group {
+					flex-direction: column;
+					gap: 8px;
+				}
+
+				.btn {
+					padding: 6px 12px;
+					font-size: 0.75rem;
+				}
+
+				.table th,
+				.table td {
+					padding: 8px;
+					font-size: 0.75rem;
+				}
+
+				.table .actions {
+					flex-direction: column;
+					gap: 4px;
+				}
+
+				.table-container {
+					max-width: 100%;
+					-webkit-overflow-scrolling: touch;
+				}
+			}
+		</style>
+	</head>
+	<body>
+		<div class="matrix-background" id="matrixBackground"></div>
+		<canvas id="matrixCanvas"></canvas>
+		<div id="loginContainer" class="container">
+			<div class="row justify-content-center" style="height: 100vh">
+				<div class="col-md-4">
+					<h2 class="text-center">Вход</h2>
+					<form id="loginForm">
+						<div class="mb-3">
+							<label for="password" class="form-label">Введите пароль:</label>
+							<input type="password" class="form-control" id="password" required />
+						</div>
+						<button type="submit" class="btn btn-primary w-100">Войти</button>
+						<p class="error text-center mt-2" id="errorMessage">Пароль неверный. Попробуйте снова.</p>
+					</form>
+				</div>
+			</div>
+		</div>
+
+		<div id="content">
+			<header class="py-2">
+				<div class="container px-2">
+					<div class="d-flex flex-column align-items-center">
+						<div class="d-flex align-items-center w-100">
+							<a href="index.html" class="d-flex align-items-center">
+								<img src="img/arrow_left.png" alt="Arrow" style="width: 18px; height: 18px" />
+							</a>
+							<ul class="nav mb-0 mx-auto d-flex align-items-center">
+								<li class="nav-item">
+									<a href="#" class="nav-link px-2 text-secondary" id="text-main">Мои билеты</a>
+								</li>
+							</ul>
+						</div>
+					</div>
+				</div>
+			</header>
+			<div class="container">
+				<h2 class="text-center mb-4">ПАНЕЛЬ УПРАВЛЕНИЯ</h2>
+
+				<!-- Форма для добавления/редактирования -->
+				<div class="dashboard-card mb-4">
+					<h4 id="formTitle" class="mb-3">Добавить новую запись</h4>
+					<form id="dataForm">
+						<input type="hidden" id="editId" />
+						<div class="form-group">
+							<label for="transportType" class="form-label">Тип транспорта</label>
+							<div>
+								<input type="radio" id="bus" name="transportType" value="bus" checked />
+								<label for="bus">Автобус</label>
+								<input type="radio" id="trolleybus" name="transportType" value="trolleybus" />
+								<label for="trolleybus">Троллейбус</label>
+							</div>
+						</div>
+						<div class="form-group">
+							<label for="additional" class="form-label">Добавочный номер</label>
+							<input type="text" class="form-control" id="additional" />
+						</div>
+						<div class="form-group">
+							<label for="number" class="form-label">Номер транспорта</label>
+							<input type="text" class="form-control" id="number" required />
+						</div>
+						<div class="form-group">
+							<label for="transport" class="form-label">Маршрут</label>
+							<input type="text" class="form-control" id="transport" required />
+						</div>
+						<button type="submit" class="btn btn-primary">Сохранить</button>
+						<button type="button" id="cancelEdit" class="btn btn-danger d-none">Отмена</button>
+					</form>
+				</div>
+
+				<!-- Таблица данных -->
+				<div class="table-container">
+					<table class="table">
+						<thead>
+							<tr>
+								<th>ID</th>
+								<th>Created At</th>
+								<th>Number</th>
+								<th>Additional</th>
+								<th>Transport</th>
+								<th>Transport Type</th>
+								<th>Действия</th>
+							</tr>
+						</thead>
+						<tbody id="dataTableBody"></tbody>
+					</table>
+				</div>
+			</div>
+		</div>
+
+		<script>
+			document.addEventListener('DOMContentLoaded', () => {
+				// Исходные данные Supabase
+				const SUPABASE_URL = 'https://eyhanthbvtfisucxctso.supabase.co'
+				const SUPABASE_ANON_KEY =
+					'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImV5aGFudGhidnRmaXN1Y3hjdHNvIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTUzNjYxMDQsImV4cCI6MjA3MDk0MjEwNH0.aM4wHWRbRyLn0xEJGoqnK7U_OCO5YWexZkQwQ8MfvaE'
+
+				const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY)
+
+				const dataForm = document.getElementById('dataForm')
+				const formTitle = document.getElementById('formTitle')
+				const editId = document.getElementById('editId')
+				const cancelEdit = document.getElementById('cancelEdit')
+				const dataTableBody = document.getElementById('dataTableBody')
+
+				// Загрузка данных из bus_data
+				async function loadData() {
+					const { data, error } = await supabase.from('bus_data').select('*').order('id', { ascending: true })
+
+					if (error) {
+						alert('Ошибка при загрузке данных: ' + error.message)
+						return
+					}
+
+					dataTableBody.innerHTML = ''
+					data.forEach(row => {
+						const tr = document.createElement('tr')
+						tr.innerHTML = `
+        <td>${row.id}</td>
+        <td>${new Date(row.created_at).toLocaleString()}</td>
+        <td>${row.number}</td>
+        <td>${row.additional || ''}</td>
+        <td>${row.transport}</td>
+        <td>${row.transport_type}</td>
+        <td class="actions">
+          <button class="btn btn-warning btn-sm edit-btn" data-id="${row.id}">Редактировать</button>
+          <button class="btn btn-danger btn-sm delete-btn" data-id="${row.id}">Удалить</button>
+        </td>
+      `
+						dataTableBody.appendChild(tr)
+					})
+				}
+
+				// Добавление/редактирование записи
+				dataForm.addEventListener('submit', async e => {
+					e.preventDefault()
+					const transportType = document.querySelector('input[name="transportType"]:checked').value
+					const additional = document.getElementById('additional').value || null
+					const number = document.getElementById('number').value
+					const transport = document.getElementById('transport').value
+
+					// Проверка уникальности (кроме случая редактирования)
+					if (!editId.value) {
+						const { data: existing, error: selectError } = await supabase
+							.from('bus_data')
+							.select('id')
+							.eq('number', number)
+							.eq('additional', additional || '')
+							.eq('transport', transport)
+
+						if (selectError) {
+							alert('Ошибка при проверке данных: ' + selectError.message)
+							return
+						}
+
+						if (existing.length > 0) {
+							alert('Запись с такими number, additional и transport уже существует')
+							return
+						}
+					}
+
+					if (editId.value) {
+						// Редактирование
+						const { error } = await supabase
+							.from('bus_data')
+							.update({ additional, number, transport, transport_type: transportType })
+							.eq('id', editId.value)
+
+						if (error) {
+							alert('Ошибка при редактировании: ' + error.message)
+							return
+						}
+					} else {
+						// Добавление
+						const { error } = await supabase
+							.from('bus_data')
+							.insert([{ additional, number, transport, transport_type: transportType }])
+
+						if (error) {
+							alert('Ошибка при добавлении: ' + error.message)
+							return
+						}
+					}
+
+					resetForm()
+					loadData()
+				})
+
+				// Удаление записи и редактирование
+				dataTableBody.addEventListener('click', async e => {
+					if (e.target.classList.contains('delete-btn')) {
+						const id = e.target.dataset.id
+						const confirmDelete = confirm('Вы уверены, что хотите удалить эту запись?')
+						if (confirmDelete) {
+							const { error } = await supabase.from('bus_data').delete().eq('id', id)
+							if (error) {
+								alert('Ошибка при удалении: ' + error.message)
+								return
+							}
+							loadData()
+						}
+					} else if (e.target.classList.contains('edit-btn')) {
+						const id = e.target.dataset.id
+						const { data, error } = await supabase.from('bus_data').select('*').eq('id', id).single()
+						if (error) {
+							alert('Ошибка при загрузке данных для редактирования: ' + error.message)
+							return
+						}
+						editId.value = data.id
+						document.getElementById(data.transport_type).checked = true
+						document.getElementById('additional').value = data.additional || ''
+						document.getElementById('number').value = data.number
+						document.getElementById('transport').value = data.transport
+						formTitle.textContent = 'Редактировать запись'
+						cancelEdit.classList.remove('d-none')
+					}
+				})
+
+				// Отмена редактирования
+				cancelEdit.addEventListener('click', resetForm)
+
+				function resetForm() {
+					dataForm.reset()
+					editId.value = ''
+					formTitle.textContent = 'Добавить новую запись'
+					cancelEdit.classList.add('d-none')
+				}
+
+				// Начальная загрузка данных
+				loadData()
+			})
+		</script>
+		<script src="lib/bcrypt.min.js"></script>
+		<script src="js/script.js"></script>
+		<script src="lib/bootstrap-5.2.3-dist/js/bootstrap.bundle.min.js"></script>
+		<script src="lib/jquery/jquery-3.7.1.min.js"></script>
+		<script src="lib/material-master/js/material.min.js"></script>
+		<script src="lib/mdl/material.min.js"></script>
+		<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+		<script></script>
+	</body>
+</html>
