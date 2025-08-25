@@ -248,7 +248,6 @@
 			<div class="container">
 				<!-- <h2 class="text-center mb-4">ПАНЕЛЬ УПРАВЛЕНИЯ</h2> -->
 
-				<!-- Форма для добавления/редактирования -->
 				<div class="dashboard-card mb-4">
 					<h4 id="formTitle" class="mb-3">Добавить новую запись</h4>
 					<form id="dataForm">
@@ -278,7 +277,7 @@
 						<button type="button" id="cancelEdit" class="btn btn-danger d-none">Отмена</button>
 					</form>
 				</div>
-				<!-- Таблица данных -->
+
 				<div class="table-container">
 					<table class="table">
 						<thead>
@@ -300,7 +299,6 @@
 
 		<script>
 			document.addEventListener('DOMContentLoaded', () => {
-				// Исходные данные Supabase
 				const SUPABASE_URL = 'https://eyhanthbvtfisucxctso.supabase.co'
 				const SUPABASE_ANON_KEY =
 					'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImV5aGFudGhidnRmaXN1Y3hjdHNvIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTUzNjYxMDQsImV4cCI6MjA3MDk0MjEwNH0.aM4wHWRbRyLn0xEJGoqnK7U_OCO5YWexZkQwQ8MfvaE'
@@ -313,7 +311,6 @@
 				const cancelEdit = document.getElementById('cancelEdit')
 				const dataTableBody = document.getElementById('dataTableBody')
 
-				// Загрузка данных из bus_data
 				async function loadData() {
 					const { data, error } = await supabase.from('bus_data').select('*').order('id', { ascending: true })
 
@@ -341,7 +338,6 @@
 					})
 				}
 
-				// Добавление/редактирование записи
 				dataForm.addEventListener('submit', async e => {
 					e.preventDefault()
 					const transportType = document.querySelector('input[name="transportType"]:checked').value
@@ -349,7 +345,6 @@
 					const number = document.getElementById('number').value
 					const transport = document.getElementById('transport').value
 
-					// Проверка уникальности (кроме случая редактирования)
 					if (!editId.value) {
 						const { data: existing, error: selectError } = await supabase
 							.from('bus_data')
@@ -370,7 +365,6 @@
 					}
 
 					if (editId.value) {
-						// Редактирование
 						const { error } = await supabase
 							.from('bus_data')
 							.update({ additional, number, transport, transport_type: transportType })
@@ -381,7 +375,6 @@
 							return
 						}
 					} else {
-						// Добавление
 						const { error } = await supabase
 							.from('bus_data')
 							.insert([{ additional, number, transport, transport_type: transportType }])
@@ -396,7 +389,6 @@
 					loadData()
 				})
 
-				// Удаление записи и редактирование
 				dataTableBody.addEventListener('click', async e => {
 					if (e.target.classList.contains('delete-btn')) {
 						const id = e.target.dataset.id
@@ -426,7 +418,6 @@
 					}
 				})
 
-				// Отмена редактирования
 				cancelEdit.addEventListener('click', resetForm)
 
 				function resetForm() {
@@ -436,7 +427,6 @@
 					cancelEdit.classList.add('d-none')
 				}
 
-				// Начальная загрузка данных
 				loadData()
 			})
 		</script>

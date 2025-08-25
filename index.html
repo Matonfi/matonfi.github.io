@@ -300,13 +300,11 @@
 							<button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
 						</div>
 						<div class="modal-body">
-							<!-- Кнопки переключения -->
 							<div class="toggle-buttons my-2">
 								<button id="addTab" class="toggle-btn active">Добавить</button>
 								<button id="selectTab" class="toggle-btn">Выбрать</button>
 							</div>
 
-							<!-- Раздел "Добавить" -->
 							<div id="addSection" class="tab-content">
 								<form id="ticketForm">
 									<div class="form-group">
@@ -354,7 +352,6 @@
 								</form>
 							</div>
 
-							<!-- Раздел "Выбрать" -->
 							<div id="selectSection" class="tab-content hidden">
 								<div class="form-group">
 									<input
@@ -363,9 +360,7 @@
 										class="form-control"
 										placeholder="Поиск по номеру транспорта" />
 								</div>
-								<div class="transport-grid">
-									<!-- Номера транспорта добавляются динамически -->
-								</div>
+								<div class="transport-grid"></div>
 							</div>
 						</div>
 					</div>
@@ -397,7 +392,6 @@
 			}
 
 			document.addEventListener('DOMContentLoaded', function () {
-				// Инициализация Supabase клиента
 				const SUPABASE_URL = 'https://eyhanthbvtfisucxctso.supabase.co'
 				const SUPABASE_ANON_KEY =
 					'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImV5aGFudGhidnRmaXN1Y3hjdHNvIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTUzNjYxMDQsImV4cCI6MjA3MDk0MjEwNH0.aM4wHWRbRyLn0xEJGoqnK7U_OCO5YWexZkQwQ8MfvaE'
@@ -410,7 +404,6 @@
 				const selectSection = document.getElementById('selectSection')
 				const searchTransport = document.getElementById('searchTransport')
 
-				// Функция для получения текущего времени в формате datetime-local
 				function getCurrentDateTimeLocal() {
 					const now = new Date()
 					const year = now.getFullYear()
@@ -421,7 +414,6 @@
 					return `${year}-${month}-${day}T${hours}:${minutes}`
 				}
 
-				// Функция для сохранения билета в localStorage с проверкой уникальности
 				function saveTicketToLocalStorage(ticket) {
 					const tickets = JSON.parse(localStorage.getItem('tickets') || '[]')
 					const exists = tickets.some(
@@ -552,13 +544,11 @@
 					})
 				}
 
-				// Automatically generate verification code when modal is shown
 				addTicketModal.addEventListener('shown.bs.modal', function () {
 					generateVerificationCode()
-					loadStoredTickets() // Обновление билетов при открытии модала
+					loadStoredTickets()
 				})
 
-				// Открытие модала и генерация кода
 				document.getElementById('btn_one').addEventListener('click', function (event) {
 					event.preventDefault()
 					generateVerificationCode()
@@ -566,7 +556,6 @@
 					myModal.show()
 				})
 
-				// Обработка формы
 				const form = document.getElementById('ticketForm')
 				const submitButton = form.querySelector('button[type="submit"]')
 
@@ -596,7 +585,6 @@
 						return
 					}
 
-					// Проверка уникальности в bus_data
 					const { data: existing, error: selectError } = await supabase
 						.from('bus_data')
 						.select('id')
@@ -664,7 +652,6 @@
 					if (submitButton) submitButton.disabled = false
 				})
 
-				// Закрытие customModal с анимацией
 				document.getElementById('closeCustomModal').addEventListener('click', function () {
 					const customModal = document.getElementById('customModal')
 					const modalContent = customModal.querySelector('.custom-modal-content')
@@ -683,13 +670,11 @@
 					)
 				})
 
-				// Очистка localStorage по кнопке
 				document.querySelector('.btn.btn-danger').addEventListener('click', function (event) {
 					event.preventDefault()
 					clearLocalStorage()
 				})
 
-				// Функция для получения данных из таблицы bus_data
 				async function fetchTransportNumbers() {
 					const { data, error } = await supabase
 						.from('bus_data')
@@ -716,7 +701,6 @@
 					}))
 				}
 
-				// Функция для отображения номеров транспорта
 				function renderTransportNumbers(numbers) {
 					const container = selectSection.querySelector('.transport-grid')
 					container.innerHTML = ''
@@ -763,13 +747,11 @@
 					})
 				}
 
-				// Загрузка и отображение данных при открытии вкладки "Выбрать"
 				async function loadAndRenderTransportNumbers() {
 					const transportNumbers = await fetchTransportNumbers()
 					renderTransportNumbers(transportNumbers)
 				}
 
-				// Логика переключения вкладок
 				addTab.addEventListener('click', () => {
 					addTab.classList.add('active')
 					selectTab.classList.remove('active')
@@ -785,7 +767,6 @@
 					await loadAndRenderTransportNumbers()
 				})
 
-				// Функция поиска
 				searchTransport.addEventListener('input', async e => {
 					const query = e.target.value.toLowerCase()
 					const transportNumbers = await fetchTransportNumbers()
@@ -793,7 +774,6 @@
 					renderTransportNumbers(filteredNumbers)
 				})
 
-				// Загрузка билетов при открытии страницы
 				loadStoredTickets()
 			})
 		</script>
