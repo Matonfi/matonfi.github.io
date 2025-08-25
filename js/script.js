@@ -93,37 +93,18 @@ document.addEventListener('DOMContentLoaded', function () {
 		const tickets = JSON.parse(localStorage.getItem('tickets') || '[]')
 		tickets.push(ticket)
 		localStorage.setItem('tickets', JSON.stringify(tickets))
-		console.log('Билет сохранен в localStorage:', ticket)
 	}
 
-	// Заглушка для loadStoredTickets, если не определена
-	window.loadStoredTickets =
-		window.loadStoredTickets ||
-		function () {
-			const tickets = JSON.parse(localStorage.getItem('tickets') || '[]')
-			console.log('loadStoredTickets: Билеты из localStorage:', tickets)
-			// Предполагается, что здесь обновляется интерфейс (например, список билетов)
-			// Добавьте код для отображения билетов, если он известен
-			const ticketList = document.getElementById('ticketList') // Замените на ваш элемент
-			if (ticketList) {
-				ticketList.innerHTML = tickets
-					.map(
-						ticket => `
-            <div class="ticket">
-              <p>${ticket.transportType} ${ticket.route} (${ticket.additionalNumber || ''})${ticket.ticketNumber}</p>
-              <p>Дата: ${ticket.time}</p>
-              <p>Цена: ${ticket.price}</p>
-              <p>Код: ${ticket.verificationCode}</p>
-            </div>
-          `,
-					)
-					.join('')
-			}
-		}
+	const form = document.getElementById('ticketForm')
+	const submitButton = form.querySelector('button[type="submit"]')
 
-	document.getElementById('ticketForm').addEventListener('submit', async function (event) {
+	form.addEventListener('submit', async function (event) {
 		event.preventDefault()
-		console.log('Форма отправлена на устройстве:', navigator.userAgent)
+
+		// Отключаем кнопку для предотвращения повторной отправки
+		if (submitButton) {
+			submitButton.disabled = true
+		}
 
 		const transportType = document.querySelector('input[name="transportType"]:checked')?.value
 		const ticketNumber = document.getElementById('ticketNumber').value
@@ -136,12 +117,12 @@ document.addEventListener('DOMContentLoaded', function () {
 		// Проверка валидности данных
 		if (!transportType) {
 			alert('Выберите тип транспорта')
-			console.log('Ошибка: Тип транспорта не выбран')
+			if (submitButton) submitButton.disabled = false
 			return
 		}
 		if (!ticketNumber || !route) {
 			alert('Заполните обязательные поля: Номер билета и Маршрут')
-			console.log('Ошибка: Обязательные поля пусты', { ticketNumber, route })
+			if (submitButton) submitButton.disabled = false
 			return
 		}
 
@@ -155,7 +136,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
 		if (selectError) {
 			alert('Ошибка при проверке данных: ' + selectError.message)
-			console.error('Ошибка проверки уникальности:', selectError)
+			if (submitButton) submitButton.disabled = false
 			return
 		}
 
@@ -171,17 +152,9 @@ document.addEventListener('DOMContentLoaded', function () {
 			])
 			if (error) {
 				alert('Ошибка при сохранении в базу данных: ' + error.message)
-				console.error('Ошибка сохранения в bus_data:', error)
+				if (submitButton) submitButton.disabled = false
 				return
 			}
-			console.log('Запись добавлена в bus_data:', {
-				transport: route,
-				additional: additionalNumber,
-				number: ticketNumber,
-				transport_type: transportType,
-			})
-		} else {
-			console.log('Запись уже существует:', { ticketNumber, additionalNumber, route })
 		}
 
 		// Форматирование времени для localStorage
@@ -212,8 +185,6 @@ document.addEventListener('DOMContentLoaded', function () {
 		// Безопасный вызов loadStoredTickets
 		if (typeof window.loadStoredTickets === 'function') {
 			window.loadStoredTickets()
-		} else {
-			console.warn('loadStoredTickets не определена, используется заглушка')
 		}
 
 		// Закрытие модального окна
@@ -221,15 +192,13 @@ document.addEventListener('DOMContentLoaded', function () {
 			const myModal = bootstrap.Modal.getInstance(document.getElementById('addTicketModal'))
 			if (myModal) {
 				myModal.hide()
-			} else {
-				console.warn('Модальное окно addTicketModal не найдено')
 			}
 		} catch (error) {
-			console.error('Ошибка при закрытии модального окна:', error)
+			alert('Ошибка при закрытии модального окна: ' + error.message)
 		}
 
 		// Сброс формы
-		document.getElementById('ticketForm').reset()
-		console.log('Форма сброшена')
+		form.reset()
+		if (submitButton) submitButton.disabled = false
 	})
 })
