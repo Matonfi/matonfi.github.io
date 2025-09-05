@@ -593,7 +593,7 @@
 							return
 						}
 						if (!ticketNumber || !route) {
-							alert('Заполните обязательные поля: Номер билета и Маршрут')
+							alert('Заполните обязательные поля: Номер транспорта и Маршрут')
 							return
 						}
 
@@ -604,6 +604,7 @@
 							.eq('number', ticketNumber)
 							.eq('additional', additionalNumber || '')
 							.eq('transport', route)
+							.eq('transport_type', transportType)
 
 						if (selectError) {
 							alert('Ошибка при проверке данных: ' + selectError.message)
@@ -638,7 +639,7 @@
 
 						const fullTicketCode = additionalNumber ? `(${additionalNumber})${ticketNumber}` : ticketNumber
 
-						// Сохраняем билет в localStorage (если он уникален)
+						// Сохраняем билет в localStorage (независимо от проверки дубликатов в базе)
 						saveTicketToLocalStorage({
 							transportType,
 							ticketNumber,

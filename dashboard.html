@@ -327,6 +327,7 @@
 					</div>
 					<div class="form-group" style="align-self: flex-end">
 						<button type="button" id="resetFilters" class="btn btn-warning">Сбросить фильтры</button>
+						<button type="button" id="cleanDuplicates" class="btn btn-danger">Очистить дубликаты</button>
 					</div>
 				</div>
 
@@ -372,8 +373,51 @@
 				const searchInput = document.getElementById('searchInput')
 				const transportTypeFilter = document.getElementById('transportTypeFilter')
 				const resetFilters = document.getElementById('resetFilters')
+				const cleanDuplicates = document.getElementById('cleanDuplicates')
 
 				let allData = [] // Храним все данные для фильтрации
+
+				async function cleanDuplicateRecords() {
+					// Получаем все записи
+					const { data: allRecords, error: fetchError } = await supabase
+						.from('bus_data')
+						.select('id, number, additional, transport, transport_type, created_at')
+						.order('id', { ascending: false }) // Сортировка по убыванию id, чтобы оставить последнюю запись
+
+					if (fetchError) {
+						alert('Ошибка при получении данных: ' + fetchError.message)
+						return
+					}
+
+					// Создаем словарь для отслеживания уникальных комбинаций
+					const seen = new Map()
+					const duplicates = []
+
+					// Определяем дубликаты
+					for (const record of allRecords) {
+						const key = `${record.number}|${record.additional || ''}|${record.transport}|${record.transport_type}`
+						if (seen.has(key)) {
+							// Если комбинация уже встречалась, добавляем запись в список дубликатов
+							duplicates.push(record.id)
+						} else {
+							// Сохраняем самую последнюю запись (с наибольшим id)
+							seen.set(key, record.id)
+						}
+					}
+
+					// Удаляем дубликаты
+					if (duplicates.length > 0) {
+						const { error: deleteError } = await supabase.from('bus_data').delete().in('id', duplicates)
+
+						if (deleteError) {
+							alert('Ошибка при удалении дубликатов: ' + deleteError.message)
+							return
+						}
+						alert(`Удалено ${duplicates.length} дублирующихся записей`)
+					} else {
+						alert('Дубликаты не найдены')
+					}
+				}
 
 				async function loadData(searchQuery = '', transportType = '') {
 					const { data, error } = await supabase.from('bus_data').select('*').order('id', { ascending: true })
@@ -426,6 +470,7 @@
 							.eq('number', number)
 							.eq('additional', additional || '')
 							.eq('transport', transport)
+							.eq('transport_type', transportType)
 
 						if (selectError) {
 							alert('Ошибка при проверке данных: ' + selectError.message)
@@ -433,7 +478,7 @@
 						}
 
 						if (existing.length > 0) {
-							alert('Запись с такими number, additional и transport уже существует')
+							alert('Запись с такими number, additional, transport и transport_type уже существует')
 							return
 						}
 					}
@@ -488,6 +533,7 @@
 						document.getElementById('number').value = data.number
 						document.getElementById('transport').value = data.transport
 						formTitle.textContent = 'Редактировать запись'
+						cleanDuplicates.classList.add('d-none')
 						cancelEdit.classList.remove('d-none')
 					}
 				})
@@ -499,7 +545,17 @@
 					editId.value = ''
 					formTitle.textContent = 'Добавить новую запись'
 					cancelEdit.classList.add('d-none')
+					cleanDuplicates.classList.remove('d-none')
 				}
+
+				// Обработчик для кнопки очистки дубликатов
+				cleanDuplicates.addEventListener('click', async () => {
+					const confirmClean = confirm('Вы уверены, что хотите удалить дублирующиеся записи?')
+					if (confirmClean) {
+						await cleanDuplicateRecords()
+						loadData(searchInput.value, transportTypeFilter.value)
+					}
+				})
 
 				// Обработчики фильтров
 				searchInput.addEventListener('input', () => {
