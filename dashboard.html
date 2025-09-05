@@ -160,6 +160,29 @@
 				gap: 8px;
 			}
 
+			.filter-group {
+				display: flex;
+				gap: 16px;
+				margin-bottom: 16px;
+				flex-wrap: wrap;
+			}
+
+			.filter-group select {
+				padding: 8px 12px;
+				border: 1px solid #d1d5db;
+				border-radius: 6px;
+				font-size: 0.875rem;
+				color: #1f2937;
+				background-color: #ffffff;
+				min-width: 150px;
+			}
+
+			.filter-group select:focus {
+				outline: none;
+				border-color: #3b82f6;
+				box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+			}
+
 			@media (max-width: 640px) {
 				.container {
 					padding: 12px;
@@ -200,6 +223,15 @@
 				.table-container {
 					max-width: 100%;
 					-webkit-overflow-scrolling: touch;
+				}
+
+				.filter-group {
+					gap: 8px;
+					flex-direction: column;
+				}
+
+				.filter-group select {
+					min-width: 100%;
 				}
 			}
 
@@ -246,8 +278,6 @@
 				</div>
 			</header>
 			<div class="container">
-				<!-- <h2 class="text-center mb-4">ПАНЕЛЬ УПРАВЛЕНИЯ</h2> -->
-
 				<div class="dashboard-card mb-4">
 					<h4 id="formTitle" class="mb-3">Добавить новую запись</h4>
 					<form id="dataForm">
@@ -278,6 +308,28 @@
 					</form>
 				</div>
 
+				<div class="filter-group">
+					<div class="form-group">
+						<label for="searchInput" class="form-label">Поиск</label>
+						<input
+							type="text"
+							class="form-control"
+							id="searchInput"
+							placeholder="Поиск по номеру, маршруту или добавочному номеру" />
+					</div>
+					<div class="form-group">
+						<label for="transportTypeFilter" class="form-label">Тип транспорта</label>
+						<select id="transportTypeFilter" class="form-control">
+							<option value="">Все</option>
+							<option value="bus">Автобус</option>
+							<option value="trolleybus">Троллейбус</option>
+						</select>
+					</div>
+					<div class="form-group" style="align-self: flex-end">
+						<button type="button" id="resetFilters" class="btn btn-warning">Сбросить фильтры</button>
+					</div>
+				</div>
+
 				<div class="table-container">
 					<table class="table">
 						<thead>
@@ -297,6 +349,13 @@
 			</div>
 		</div>
 
+		<script src="lib/bcrypt.min.js"></script>
+		<script src="js/script.js"></script>
+		<script src="lib/bootstrap-5.2.3-dist/js/bootstrap.bundle.min.js"></script>
+		<script src="lib/jquery/jquery-3.7.1.min.js"></script>
+		<script src="lib/material-master/js/material.min.js"></script>
+		<script src="lib/mdl/material.min.js"></script>
+		<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 		<script>
 			document.addEventListener('DOMContentLoaded', () => {
 				const SUPABASE_URL = 'https://eyhanthbvtfisucxctso.supabase.co'
@@ -310,8 +369,13 @@
 				const editId = document.getElementById('editId')
 				const cancelEdit = document.getElementById('cancelEdit')
 				const dataTableBody = document.getElementById('dataTableBody')
+				const searchInput = document.getElementById('searchInput')
+				const transportTypeFilter = document.getElementById('transportTypeFilter')
+				const resetFilters = document.getElementById('resetFilters')
 
-				async function loadData() {
+				let allData = [] // Храним все данные для фильтрации
+
+				async function loadData(searchQuery = '', transportType = '') {
 					const { data, error } = await supabase.from('bus_data').select('*').order('id', { ascending: true })
 
 					if (error) {
@@ -319,21 +383,31 @@
 						return
 					}
 
+					allData = data // Сохраняем данные для фильтрации
+
+					// Фильтрация данных
+					const filteredData = allData.filter(row => {
+						const searchString = `${row.number} ${row.additional || ''} ${row.transport}`.toLowerCase()
+						const matchesSearch = searchQuery ? searchString.includes(searchQuery.toLowerCase()) : true
+						const matchesType = transportType ? row.transport_type === transportType : true
+						return matchesSearch && matchesType
+					})
+
 					dataTableBody.innerHTML = ''
-					data.forEach(row => {
+					filteredData.forEach(row => {
 						const tr = document.createElement('tr')
 						tr.innerHTML = `
-        <td>${row.id}</td>
-        <td><img src="img/${row.transport_type}.png" alt="${row.transport_type}" style="height:18px;"/></td>
-        <td>${row.additional || ''}</td>
-        <td>${row.number}</td>
-        <td>${row.transport}</td>
-        <td>${new Date(row.created_at).toLocaleString()}</td>
-        <td class="actions">
-          <button class="btn btn-success btn-sm edit-btn" data-id="${row.id}">Редактировать</button>
-          <button class="btn btn-danger btn-sm delete-btn" data-id="${row.id}">Удалить</button>
-        </td>
-      `
+							<td>${row.id}</td>
+							<td><img src="img/${row.transport_type}.png" alt="${row.transport_type}" style="height:18px;"/></td>
+							<td>${row.additional || ''}</td>
+							<td>${row.number}</td>
+							<td>${row.transport}</td>
+							<td>${new Date(row.created_at).toLocaleString()}</td>
+							<td class="actions">
+								<button class="btn btn-success btn-sm edit-btn" data-id="${row.id}">Редактировать</button>
+								<button class="btn btn-danger btn-sm delete-btn" data-id="${row.id}">Удалить</button>
+							</td>
+						`
 						dataTableBody.appendChild(tr)
 					})
 				}
@@ -386,7 +460,7 @@
 					}
 
 					resetForm()
-					loadData()
+					loadData(searchInput.value, transportTypeFilter.value)
 				})
 
 				dataTableBody.addEventListener('click', async e => {
@@ -399,7 +473,7 @@
 								alert('Ошибка при удалении: ' + error.message)
 								return
 							}
-							loadData()
+							loadData(searchInput.value, transportTypeFilter.value)
 						}
 					} else if (e.target.classList.contains('edit-btn')) {
 						const id = e.target.dataset.id
@@ -427,16 +501,23 @@
 					cancelEdit.classList.add('d-none')
 				}
 
+				// Обработчики фильтров
+				searchInput.addEventListener('input', () => {
+					loadData(searchInput.value, transportTypeFilter.value)
+				})
+
+				transportTypeFilter.addEventListener('change', () => {
+					loadData(searchInput.value, transportTypeFilter.value)
+				})
+
+				resetFilters.addEventListener('click', () => {
+					searchInput.value = ''
+					transportTypeFilter.value = ''
+					loadData()
+				})
+
 				loadData()
 			})
 		</script>
-		<script src="lib/bcrypt.min.js"></script>
-		<script src="js/script.js"></script>
-		<script src="lib/bootstrap-5.2.3-dist/js/bootstrap.bundle.min.js"></script>
-		<script src="lib/jquery/jquery-3.7.1.min.js"></script>
-		<script src="lib/material-master/js/material.min.js"></script>
-		<script src="lib/mdl/material.min.js"></script>
-		<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-		<script></script>
 	</body>
 </html>
