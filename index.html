@@ -212,12 +212,12 @@
 						<img src="img/onay.png" alt="Image in Yellow Strip" />
 					</div>
 					<div class="card-content py-2">
-						<p id="text_01">Автобус</p>
+						<p id="text_01" class="transportTypeText">Автобус</p>
 						<p class="mb-2" id="text_02">Алматы</p>
 						<p class="align-items-center text-center pb-1">
 							<span class="label">Маршрут:</span>
 							<span class="value w-700 fs-14">
-								<img src="img/bus.png" alt="bus icon" class="bus-icon transport-icon" id="transportIcon" />
+								<img src="img/bus.png" alt="bus icon" class="bus-icon transport-icon" />
 								<span id="routeNumber">00</span>
 								<span class="badge-custome-two badge mx-2 fs-14" id="ticketCode">009FJ00</span>
 							</span>
@@ -233,7 +233,7 @@
 						<p class="pb-1">
 							<span class="label">Код проверки:</span>
 							<span class="value w-700 fs-14" id="verificationCodeDisplay"
-								>3DF19 <img src="img/qr.png" alt="bus icon" class="qr-icon mx-1"
+								>3DF19 <img src="img/qr.png" alt="QR код" class="qr-icon mx-1"
 							/></span>
 						</p>
 					</div>
@@ -489,7 +489,7 @@
 						const ticketTimeEl = ticketTemplate.querySelector('#ticketTime')
 						const ticketPriceEl = ticketTemplate.querySelector('#ticketPrice')
 						const verificationCodeEl = ticketTemplate.querySelector('#verificationCodeDisplay')
-						const transportIconEl = document.getElementById('transportIcon')
+						const transportIconEl = ticketTemplate.querySelector('.transport-icon') // Исправлено: поиск по классу внутри ticketTemplate
 
 						const fullTicketCode = ticket.additionalNumber
 							? `(${ticket.additionalNumber})${ticket.ticketNumber}`
@@ -503,7 +503,11 @@
 							verificationCodeEl.innerHTML =
 								ticket.verificationCode + ' <img src="img/qr.png" alt="QR код" class="qr-icon mx-1">'
 						const transportIconSrc = ticket.transportType === 'bus' ? 'img/bus.png' : 'img/trolleybus.png'
-						if (transportIconEl) transportIconEl.src = transportIconSrc
+						if (transportIconEl) {
+							transportIconEl.src = transportIconSrc
+							transportIconEl.alt = ticket.transportType === 'bus' ? 'bus icon' : 'trolleybus icon'
+							transportIconEl.removeAttribute('id') // Удаляем id, чтобы избежать дублирования
+						}
 
 						const transportTextEl = ticketTemplate.querySelector('.transportTypeText')
 						if (transportTextEl) transportTextEl.textContent = ticket.transportType === 'bus' ? 'Автобус' : 'Троллейбус'
@@ -527,6 +531,8 @@
 								document.getElementById('modalTicketTime').textContent = ticket.time
 								document.getElementById('modalVerificationCodeDisplay').textContent = ticket.verificationCode
 								document.getElementById('modalTransportIcon').src = transportIconSrc
+								document.getElementById('modalTransportIcon').alt =
+									ticket.transportType === 'bus' ? 'bus icon' : 'trolleybus icon'
 								customModal.style.display = 'block'
 
 								modalContent.addEventListener(
