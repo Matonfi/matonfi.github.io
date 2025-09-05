@@ -403,6 +403,10 @@
 				const addSection = document.getElementById('addSection')
 				const selectSection = document.getElementById('selectSection')
 				const searchTransport = document.getElementById('searchTransport')
+				const form = document.getElementById('ticketForm')
+				const submitButton = form.querySelector('button[type="submit"]')
+
+				let isSubmitting = false // Флаг для предотвращения повторных отправок
 
 				function getCurrentDateTimeLocal() {
 					const now = new Date()
@@ -421,7 +425,8 @@
 							t.ticketNumber === ticket.ticketNumber &&
 							t.additionalNumber === ticket.additionalNumber &&
 							t.route === ticket.route &&
-							t.time === ticket.time,
+							t.time === ticket.time &&
+							t.verificationCode === ticket.verificationCode,
 					)
 					if (!exists) {
 						tickets.push(ticket)
@@ -489,7 +494,7 @@
 						const ticketTimeEl = ticketTemplate.querySelector('#ticketTime')
 						const ticketPriceEl = ticketTemplate.querySelector('#ticketPrice')
 						const verificationCodeEl = ticketTemplate.querySelector('#verificationCodeDisplay')
-						const transportIconEl = ticketTemplate.querySelector('.transport-icon') // Исправлено: поиск по классу внутри ticketTemplate
+						const transportIconEl = ticketTemplate.querySelector('.transport-icon')
 
 						const fullTicketCode = ticket.additionalNumber
 							? `(${ticket.additionalNumber})${ticket.ticketNumber}`
@@ -506,7 +511,7 @@
 						if (transportIconEl) {
 							transportIconEl.src = transportIconSrc
 							transportIconEl.alt = ticket.transportType === 'bus' ? 'bus icon' : 'trolleybus icon'
-							transportIconEl.removeAttribute('id') // Удаляем id, чтобы избежать дублирования
+							transportIconEl.removeAttribute('id')
 						}
 
 						const transportTextEl = ticketTemplate.querySelector('.transportTypeText')
@@ -562,100 +567,108 @@
 					myModal.show()
 				})
 
-				const form = document.getElementById('ticketForm')
-				const submitButton = form.querySelector('button[type="submit"]')
-
 				form.addEventListener('submit', async function (event) {
 					event.preventDefault()
 
+					if (isSubmitting) {
+						return // Блокируем повторные отправки
+					}
+
+					isSubmitting = true // Устанавливаем флаг
 					if (submitButton) {
-						submitButton.disabled = true
+						submitButton.disabled = true // Отключаем кнопку сразу
 					}
-
-					const transportType = document.querySelector('input[name="transportType"]:checked')?.value
-					const ticketNumber = document.getElementById('ticketNumber').value
-					const additionalNumber = document.getElementById('additionalNumber').value || ''
-					const route = document.getElementById('route').value
-					const time = document.getElementById('time').value
-					const price = document.getElementById('price').value
-					const verificationCode = document.getElementById('verificationCode').value
-
-					if (!transportType) {
-						alert('Выберите тип транспорта')
-						if (submitButton) submitButton.disabled = false
-						return
-					}
-					if (!ticketNumber || !route) {
-						alert('Заполните обязательные поля: Номер билета и Маршрут')
-						if (submitButton) submitButton.disabled = false
-						return
-					}
-
-					const { data: existing, error: selectError } = await supabase
-						.from('bus_data')
-						.select('id')
-						.eq('number', ticketNumber)
-						.eq('additional', additionalNumber || '')
-						.eq('transport', route)
-
-					if (selectError) {
-						alert('Ошибка при проверке данных: ' + selectError.message)
-						if (submitButton) submitButton.disabled = false
-						return
-					}
-
-					if (existing.length === 0) {
-						const { error } = await supabase.from('bus_data').insert([
-							{
-								transport: route,
-								additional: additionalNumber || null,
-								number: ticketNumber,
-								transport_type: transportType,
-							},
-						])
-						if (error) {
-							alert('Ошибка при сохранении в базу данных: ' + error.message)
-							if (submitButton) submitButton.disabled = false
-							return
-						}
-					}
-
-					const dateObj = new Date(time)
-					const formattedDate =
-						('0' + dateObj.getDate()).slice(-2) +
-						'.' +
-						('0' + (dateObj.getMonth() + 1)).slice(-2) +
-						'.' +
-						dateObj.getFullYear().toString().slice(-2)
-					const formattedTime = ('0' + dateObj.getHours()).slice(-2) + ':' + ('0' + dateObj.getMinutes()).slice(-2)
-					const formattedDateTime = formattedDate + ' ' + formattedTime
-
-					const fullTicketCode = additionalNumber ? `(${additionalNumber})${ticketNumber}` : ticketNumber
-
-					saveTicketToLocalStorage({
-						transportType,
-						ticketNumber,
-						additionalNumber,
-						route,
-						time: formattedDateTime,
-						price,
-						verificationCode,
-						createdAt: Date.now(),
-					})
-
-					loadStoredTickets()
 
 					try {
+						const transportType = document.querySelector('input[name="transportType"]:checked')?.value
+						const ticketNumber = document.getElementById('ticketNumber').value
+						const additionalNumber = document.getElementById('additionalNumber').value || ''
+						const route = document.getElementById('route').value
+						const time = document.getElementById('time').value
+						const price = document.getElementById('price').value
+						const verificationCode = document.getElementById('verificationCode').value
+
+						if (!transportType) {
+							alert('Выберите тип транспорта')
+							return
+						}
+						if (!ticketNumber || !route) {
+							alert('Заполните обязательные поля: Номер билета и Маршрут')
+							return
+						}
+
+						// Проверка на дубликат в базе данных
+						const { data: existing, error: selectError } = await supabase
+							.from('bus_data')
+							.select('id')
+							.eq('number', ticketNumber)
+							.eq('additional', additionalNumber || '')
+							.eq('transport', route)
+
+						if (selectError) {
+							alert('Ошибка при проверке данных: ' + selectError.message)
+							return
+						}
+
+						// Если записи нет, добавляем в bus_data
+						if (existing.length === 0) {
+							const { error } = await supabase.from('bus_data').insert([
+								{
+									transport: route,
+									additional: additionalNumber || null,
+									number: ticketNumber,
+									transport_type: transportType,
+								},
+							])
+							if (error) {
+								alert('Ошибка при сохранении в базу данных: ' + error.message)
+								return
+							}
+						}
+
+						const dateObj = new Date(time)
+						const formattedDate =
+							('0' + dateObj.getDate()).slice(-2) +
+							'.' +
+							('0' + (dateObj.getMonth() + 1)).slice(-2) +
+							'.' +
+							dateObj.getFullYear().toString().slice(-2)
+						const formattedTime = ('0' + dateObj.getHours()).slice(-2) + ':' + ('0' + dateObj.getMinutes()).slice(-2)
+						const formattedDateTime = formattedDate + ' ' + formattedTime
+
+						const fullTicketCode = additionalNumber ? `(${additionalNumber})${ticketNumber}` : ticketNumber
+
+						// Сохраняем билет в localStorage (если он уникален)
+						saveTicketToLocalStorage({
+							transportType,
+							ticketNumber,
+							additionalNumber,
+							route,
+							time: formattedDateTime,
+							price,
+							verificationCode,
+							createdAt: Date.now(),
+						})
+
+						// Обновляем отображение билетов
+						loadStoredTickets()
+
+						// Закрываем модальное окно
 						const myModal = bootstrap.Modal.getInstance(document.getElementById('addTicketModal'))
 						if (myModal) {
 							myModal.hide()
 						}
-					} catch (error) {
-						alert('Ошибка при закрытии модального окна: ' + error.message)
-					}
 
-					form.reset()
-					if (submitButton) submitButton.disabled = false
+						// Сбрасываем форму
+						form.reset()
+					} catch (error) {
+						alert('Произошла ошибка: ' + error.message)
+					} finally {
+						isSubmitting = false // Сбрасываем флаг
+						if (submitButton) {
+							submitButton.disabled = false // Разблокируем кнопку
+						}
+					}
 				})
 
 				document.getElementById('closeCustomModal').addEventListener('click', function () {
