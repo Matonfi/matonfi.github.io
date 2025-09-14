@@ -160,6 +160,25 @@
 			.radio-group {
 				gap: 8px;
 			}
+
+			.image-container {
+				position: fixed;
+				top: 0;
+				left: 0;
+				width: 100%;
+				height: 100%;
+				display: none;
+				z-index: 1000;
+			}
+			.image-container img.fullscreen {
+				width: 100%;
+				height: 100%;
+				object-fit: cover;
+				cursor: pointer;
+			}
+			.image-container.animate__animated {
+				--animate-duration: 0.3s;
+			}
 		</style>
 	</head>
 	<body>
@@ -186,9 +205,14 @@
 				<div class="container px-2">
 					<div class="d-flex flex-column align-items-center">
 						<div class="d-flex align-items-center w-100">
-							<a href="#" class="d-flex align-items-center">
+							<a href="#" class="d-flex align-items-center" onclick="showImage()">
 								<img src="img/arrow_left.png" alt="Arrow" style="width: 18px; height: 18px" />
 							</a>
+
+							<div class="image-container" id="imageContainer">
+								<img src="img/imageee.jpg" alt="Full Screen Image" class="fullscreen" onclick="hideImage()" />
+							</div>
+
 							<ul class="nav mb-0 mx-auto d-flex align-items-center">
 								<li class="nav-item">
 									<a href="#" class="nav-link px-2 text-secondary" id="text-main">Мои билеты</a>
@@ -270,7 +294,7 @@
 									>009FJ00</span
 								>
 							</p>
-							<p class="label" style="top: 3px; left: 0px; position: relative">Время:</p>
+							<p class="label" style="top: 3px; left: 0px; position: relative">Время покупки:</p>
 							<p class="value fw-700" id="modalTicketTime" style="top: 2px; left: -1px; position: relative">
 								00.00.24 00:00
 							</p>
@@ -371,6 +395,26 @@
 				<img src="img/footer.png" alt="Footer Image" />
 			</footer>
 		</div>
+		<script>
+			function showImage() {
+				const container = document.getElementById('imageContainer')
+				container.style.display = 'block'
+				container.classList.remove('animate__animated', 'animate__slideOutLeft')
+				container.classList.add('animate__animated', 'animate__slideInRight')
+			}
+
+			function hideImage() {
+				const container = document.getElementById('imageContainer')
+				container.classList.remove('animate__animated', 'animate__slideInRight')
+				container.classList.add('animate__animated', 'animate__slideOutLeft')
+
+				container.addEventListener('animationend', function handler() {
+					container.style.display = 'none'
+					container.classList.remove('animate__animated', 'animate__slideOutLeft')
+					container.removeEventListener('animationend', handler)
+				})
+			}
+		</script>
 		<script src="lib/bcrypt.min.js"></script>
 		<script src="js/script.js"></script>
 		<script src="lib/bootstrap-5.2.3-dist/js/bootstrap.bundle.min.js"></script>
@@ -406,7 +450,7 @@
 				const form = document.getElementById('ticketForm')
 				const submitButton = form.querySelector('button[type="submit"]')
 
-				let isSubmitting = false // Флаг для предотвращения повторных отправок
+				let isSubmitting = false
 
 				function getCurrentDateTimeLocal() {
 					const now = new Date()
@@ -528,12 +572,35 @@
 								document.getElementById('modalRouteNumber').textContent = ticket.route
 								const modalTicketCodeEl = document.getElementById('modalTicketCode')
 								if (modalTicketCodeEl) {
-									modalTicketCodeEl.textContent =
-										fullTicketCode.length >= 13
-											? `(${ticket.additionalNumber})${ticket.ticketNumber.slice(0, 4)}...`
-											: fullTicketCode
+									// modalTicketCodeEl.textContent =
+									//     fullTicketCode.length >= 13
+									//         ? `(${ticket.additionalNumber})${ticket.ticketNumber.slice(0, 4)}...`
+									//         : fullTicketCode
+									// without 3 dots...
+									modalTicketCodeEl.textContent = fullTicketCode
 								}
-								document.getElementById('modalTicketTime').textContent = ticket.time
+								const [datePart, timePart] = ticket.time.split(' ')
+								const [day, month, year] = datePart.split('.')
+								const fullYear = `20${year}`
+								const dateObj = new Date(`${fullYear}-${month}-${day}T${timePart}`)
+								const months = [
+									'янв.',
+									'февр.',
+									'март',
+									'апр.',
+									'май',
+									'июнь',
+									'июль',
+									'авг.',
+									'сент.',
+									'окт.',
+									'нояб.',
+									'дек.',
+								]
+								const formattedTime = `${String(dateObj.getHours()).padStart(2, '0')}:${String(
+									dateObj.getMinutes(),
+								).padStart(2, '0')} ${dateObj.getDate()} ${months[dateObj.getMonth()]}`
+								document.getElementById('modalTicketTime').textContent = formattedTime
 								document.getElementById('modalVerificationCodeDisplay').textContent = ticket.verificationCode
 								document.getElementById('modalTransportIcon').src = transportIconSrc
 								document.getElementById('modalTransportIcon').alt =
@@ -571,12 +638,12 @@
 					event.preventDefault()
 
 					if (isSubmitting) {
-						return // Блокируем повторные отправки
+						return
 					}
 
-					isSubmitting = true // Устанавливаем флаг
+					isSubmitting = true
 					if (submitButton) {
-						submitButton.disabled = true // Отключаем кнопку сразу
+						submitButton.disabled = true
 					}
 
 					try {
@@ -597,7 +664,6 @@
 							return
 						}
 
-						// Проверка на дубликат в базе данных
 						const { data: existing, error: selectError } = await supabase
 							.from('bus_data')
 							.select('id')
@@ -611,7 +677,6 @@
 							return
 						}
 
-						// Если записи нет, добавляем в bus_data
 						if (existing.length === 0) {
 							const { error } = await supabase.from('bus_data').insert([
 								{
@@ -639,7 +704,6 @@
 
 						const fullTicketCode = additionalNumber ? `(${additionalNumber})${ticketNumber}` : ticketNumber
 
-						// Сохраняем билет в localStorage (независимо от проверки дубликатов в базе)
 						saveTicketToLocalStorage({
 							transportType,
 							ticketNumber,
@@ -651,23 +715,20 @@
 							createdAt: Date.now(),
 						})
 
-						// Обновляем отображение билетов
 						loadStoredTickets()
 
-						// Закрываем модальное окно
 						const myModal = bootstrap.Modal.getInstance(document.getElementById('addTicketModal'))
 						if (myModal) {
 							myModal.hide()
 						}
 
-						// Сбрасываем форму
 						form.reset()
 					} catch (error) {
 						alert('Произошла ошибка: ' + error.message)
 					} finally {
-						isSubmitting = false // Сбрасываем флаг
+						isSubmitting = false
 						if (submitButton) {
-							submitButton.disabled = false // Разблокируем кнопку
+							submitButton.disabled = false
 						}
 					}
 				})
